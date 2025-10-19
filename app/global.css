@@ -1,0 +1,29 @@
+/* app/global.css */
+
+/* Table styling */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Header and cell styling */
+.dashboard-table th,
+.dashboard-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Buyer header styling */
+.buyer {
+  padding-left: 0px; /* No left padding as requested */
+  text-align: left;
+}
+
+/* Expense header and value styling */
+.expense {
+  text-align: right; /* Right-align header */
+}
+
+.expense-value {
+  text-align: right; /* Right-align expense values */
+}

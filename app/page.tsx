@@ -83,7 +83,7 @@ export default function Home() {
           backdropFilter: 'blur(12px)',
           border: '1px solid rgba(255, 255, 255, 0.25)',
           borderRadius: '16px',
-          padding: '32px',
+          padding: '3px',
           boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
           animation: 'fadeIn 0.8s ease-out',
         }}
@@ -115,7 +115,7 @@ export default function Home() {
         {error && (
           <div
             style={{
-              background: 'rgba(239, 68, 68, 0.2)',
+              //background: 'rgba(239, 68, 68, 0.2)',
               color: '#fecdd3',
               fontSize: '14px',
               padding: '12px',

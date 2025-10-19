@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import '../global.css';
 import {
   BarChart,
   Bar,
@@ -42,6 +43,7 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem('me_token');
     if (!token) router.push('/');
+    fetchDailyExpenses(); // ✅ Load expenses on page load
   }, [router]);
 
   // Auto calculate total
@@ -51,6 +53,7 @@ export default function Dashboard() {
     setExpense((prev) => ({ ...prev, total_price: total }));
   }, [expense.quantity, expense.price_per_unit]);
 
+  // 🧭 Logout
   async function handleLogout() {
     localStorage.removeItem('me_token');
     router.push('/');
@@ -99,7 +102,7 @@ export default function Dashboard() {
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
-      .eq('date', today);
+      .order('date', { ascending: false });
 
     if (!error && data) setDailyExpenses(data);
   }
@@ -145,8 +148,14 @@ export default function Dashboard() {
 
   return (
     <div style={styles.wrapper}>
-      <h1 style={styles.title}>Welcome to Mini Expense Tracker</h1>
+      <div style={styles.header}>
+        <h1 style={styles.title}>Welcome to Mini Expense Tracker</h1>
+        <button style={styles.logoutBtn} onClick={handleLogout}>
+          🚪 Logout
+        </button>
+      </div>
 
+      {/* Dashboard Cards */}
       <div style={styles.cards}>
         {cards.map((card, i) => (
           <div key={i} style={styles.card} onClick={card.onClick}>
@@ -155,9 +164,41 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <button style={styles.logoutBtn} onClick={handleLogout}>
-        🚪 Logout
-      </button>
+      {/* 🧾 Daily Expense Table */}
+      <div style={styles.dailyCard}>
+        <h2 style={styles.sectionTitle}>📅 All Expenses</h2>
+
+        {dailyExpenses.length === 0 ? (
+          <p style={{ textAlign: 'center', marginTop: 10 }}>
+            No expenses found.
+          </p>
+        ) : (
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Item</th>
+                <th style={styles.th}>Quantity</th>
+                <th style={styles.th}>Price/Unit</th>
+                <th style={styles.th}>Total</th>
+                <th style={styles.th}>Buyer</th>
+                <th style={styles.th}>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dailyExpenses.map((exp) => (
+                <tr key={exp.id}>
+                  <td style={styles.td}>{exp.item_name}</td>
+                  <td style={styles.td}>{exp.quantity}</td>
+                  <td style={styles.td}>{exp.price_per_unit}</td>
+                  <td style={styles.td}>{exp.total_price}</td>
+                  <td style={styles.td}>{exp.buyer_name}</td>
+                  <td style={styles.td}>{exp.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       {/* Expense Modal */}
       {showExpenseModal && (
@@ -221,35 +262,6 @@ export default function Dashboard() {
               Save Expense
             </button>
           </form>
-
-          {/* Daily Expense Summary */}
-          <div style={{ marginTop: 25 }}>
-            <h3 style={{ textAlign: 'center', marginBottom: 10 }}>
-              📅 Today’s Expenses
-            </h3>
-            {dailyExpenses.length === 0 ? (
-              <p style={{ textAlign: 'center' }}>No expenses today.</p>
-            ) : (
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Buyer</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dailyExpenses.map((exp) => (
-                    <tr key={exp.id}>
-                      <td>{exp.item_name}</td>
-                      <td>{exp.buyer_name}</td>
-                      <td>{exp.total_price}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
         </Modal>
       )}
 
@@ -316,15 +328,15 @@ export default function Dashboard() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th >Buyer</th>
-                <th>Total Expense (PKR)</th>
+                <th style={styles.th}>Buyer</th>
+                <th style={styles.th}>Total Expense (PKR)</th>
               </tr>
             </thead>
             <tbody>
               {analytics.map(({ buyer, total }) => (
                 <tr key={buyer}>
-                  <td>{buyer}</td>
-                  <td>{Number(total).toFixed(2)}</td>
+                  <td style={styles.td}>{buyer}</td>
+                  <td style={styles.td}>{Number(total).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -347,7 +359,7 @@ export default function Dashboard() {
   );
 }
 
-// Modal Component
+// 🧩 Modal Component
 function Modal({
   title,
   children,
@@ -373,42 +385,104 @@ function Modal({
 // 🎨 Styling
 const styles = {
   wrapper: {
+    padding: '40px',
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #89f7fe, #66a6ff)',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    paddingTop: 60,
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '85%',
+    marginBottom: '30px',
   },
   title: {
-    fontSize: 28,
+    fontSize: '1.8rem',
     fontWeight: 700,
     color: '#1e293b',
-    marginBottom: 40,
-  },
-  cards: {
-    display: 'flex',
-    gap: 20,
-    flexWrap: 'wrap' as const,
-    justifyContent: 'center',
-  },
-  card: {
-    background: 'white',
-    borderRadius: 14,
-    padding: 30,
-    width: 220,
     textAlign: 'center' as const,
-    boxShadow: '0 6px 25px rgba(0,0,0,0.08)',
-    cursor: 'pointer',
   },
   logoutBtn: {
-    marginTop: 40,
     background: 'linear-gradient(90deg,#ef4444,#f97316)',
     color: '#fff',
     border: 'none',
-    padding: '10px 14px',
-    borderRadius: 10,
+    padding: '10px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+  },
+  cards: {
+    display: 'flex',
+    gap: '20px',
+    flexWrap: 'wrap' as const,
+    justifyContent: 'center' as const,
+  },
+  card: {
+    background: '#fff',
+    borderRadius: '12px',
+    padding: '20px',
+    width: '200px',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+    cursor: 'pointer',
+    textAlign: 'center' as const,
+    transition: '0.3s',
+  },
+  dailyCard: {
+    background: '#fff',
+    padding: '25px',
+    borderRadius: '16px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    width: '85%',
+    margin: '40px auto',
+    textAlign: 'center' as const,
+  },
+  sectionTitle: {
+    fontSize: '1.4rem',
+    marginBottom: '15px',
     fontWeight: 600,
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    background: '#f9fafb',
+    borderRadius: '12px',
+    overflow: 'hidden',
+  },
+  th: {
+    backgroundColor: '#0070f3',
+    color: 'white',
+    padding: '12px 15px',
+    fontWeight: 600,
+    textAlign: 'center' as const,
+  },
+  td: {
+    borderBottom: '1px solid #ddd',
+    padding: '12px 15px',
+    textAlign: 'center' as const,
+  },
+  primaryBtn: {
+    background: 'linear-gradient(90deg,#2563eb,#7c3aed)',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 12px',
+    borderRadius: 8,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  input: {
+    padding: '10px 12px',
+    borderRadius: 8,
+    border: '1px solid #d1d5db',
+  },
+  closeBtn: {
+    marginTop: 12,
+    background: '#e2e8f0',
+    border: 'none',
+    padding: '8px 10px',
+    borderRadius: 6,
     cursor: 'pointer',
   },
   modalOverlay: {
@@ -435,31 +509,5 @@ const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: 10,
-  },
-  input: {
-    padding: '10px 12px',
-    borderRadius: 8,
-    border: '1px solid #d1d5db',
-  },
-  primaryBtn: {
-    background: 'linear-gradient(90deg,#2563eb,#7c3aed)',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 12px',
-    borderRadius: 8,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse' as const,
-  },
-  closeBtn: {
-    marginTop: 12,
-    background: '#e2e8f0',
-    border: 'none',
-    padding: '8px 10px',
-    borderRadius: 6,
-    cursor: 'pointer',
   },
 };
