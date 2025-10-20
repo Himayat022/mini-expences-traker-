@@ -115,7 +115,7 @@ export default function Home() {
         {error && (
           <div
             style={{
-              //background: 'rgba(239, 68, 68, 0.2)',
+              background: 'rgba(239, 68, 68, 0.2)',
               color: '#fecdd3',
               fontSize: '14px',
               padding: '12px',

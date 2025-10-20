@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import '../global.css';
+import styles from './dashboard.module.css';
 import {
   BarChart,
   Bar,
@@ -243,6 +243,7 @@ export default function Dashboard() {
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [filter, setFilter] = useState<'daily' | 'monthly'>('monthly');
   const [analyticsMode, setAnalyticsMode] = useState<'buyer' | 'item' | 'balances'>('buyer');
+  const [expenseFilter, setExpenseFilter] = useState<'daily' | 'monthly' | 'all'>('all');
 
   // Search/filter UI
   const [searchQuery, setSearchQuery] = useState('');
@@ -286,8 +287,16 @@ export default function Dashboard() {
   }
 
   /* ---------------- Expenses ---------------- */
-  async function fetchDailyExpenses() {
-    const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
+  async function fetchDailyExpenses(filter: 'daily' | 'monthly' | 'all' = expenseFilter) {
+    let query = supabase.from('expenses').select('*').order('date', { ascending: false });
+    if (filter === 'daily') {
+      query = query.gte('date', new Date().toISOString().split('T')[0]);
+    } else if (filter === 'monthly') {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      query = query.gte('date', startOfMonth.toISOString().split('T')[0]);
+    }
+    const { data, error } = await query;
     if (!error && data) setDailyExpenses(data);
     else if (error) console.error('fetchDailyExpenses error', error);
   }
@@ -302,36 +311,26 @@ export default function Dashboard() {
       consumed_by: expense.consumed_by,
     };
 
-    // Calculate per-person contribution and consumption shares
+    // Calculate shares
+    const totalContributors = expense.contributed_by.length + 1; // Include buyer as contributor
     const perContributorShare =
-      expense.contributed_by.length > 0
-        ? Number(expense.total_price) / (expense.contributed_by.length + 1)
-        : Number(expense.total_price);
+      totalContributors > 0 ? Number(expense.total_price) / totalContributors : Number(expense.total_price);
     const perConsumerShare =
       expense.consumed_by.length > 0
         ? Number(expense.total_price) / expense.consumed_by.length
         : 0;
 
     if (editingExpense) {
-      // Update existing expense
-      const { error } = await supabase.from('expenses').update(payload).eq('id', editingExpense.id);
-      if (error) {
-        alert('❌ ' + error.message);
-        return;
-      }
-
       // Revert previous balance changes
       const oldExpense = editingExpense;
+      const oldTotalContributors = oldExpense.contributed_by.length + 1;
       const oldPerContributorShare =
-        oldExpense.contributed_by.length > 0
-          ? Number(oldExpense.total_price) / (oldExpense.contributed_by.length + 1)
-          : Number(oldExpense.total_price);
+        oldTotalContributors > 0 ? Number(oldExpense.total_price) / oldTotalContributors : Number(oldExpense.total_price);
       const oldPerConsumerShare =
         oldExpense.consumed_by.length > 0
           ? Number(oldExpense.total_price) / oldExpense.consumed_by.length
           : 0;
 
-      // Revert contributors and buyer
       for (const personName of oldExpense.contributed_by) {
         const person = peopleList.find((p) => p.name === personName);
         if (person) {
@@ -349,7 +348,6 @@ export default function Dashboard() {
           .eq('name', oldExpense.buyer_name);
       }
 
-      // Revert consumers
       for (const personName of oldExpense.consumed_by) {
         const person = peopleList.find((p) => p.name === personName);
         if (person) {
@@ -366,7 +364,7 @@ export default function Dashboard() {
         if (person) {
           await supabase
             .from('people')
-            .update({ balance: Number(person.balance || 0) - perContributorShare })
+            .update({ balance: Number(person.balance || 0) - perContributorShare + perContributorShare })
             .eq('name', personName);
         }
       }
@@ -374,7 +372,7 @@ export default function Dashboard() {
       if (buyer) {
         await supabase
           .from('people')
-          .update({ balance: Number(buyer.balance || 0) - perContributorShare })
+          .update({ balance: Number(buyer.balance || 0) - perContributorShare + perContributorShare })
           .eq('name', expense.buyer_name);
       }
 
@@ -383,9 +381,15 @@ export default function Dashboard() {
         if (person) {
           await supabase
             .from('people')
-            .update({ balance: Number(person.balance || 0) - perConsumerShare })
+            .update({ balance: Number(person.balance || 0) - perConsumerShare + oldPerConsumerShare })
             .eq('name', personName);
         }
+      }
+
+      const { error } = await supabase.from('expenses').update(payload).eq('id', editingExpense.id);
+      if (error) {
+        alert('❌ ' + error.message);
+        return;
       }
 
       alert('✅ Expense updated successfully!');
@@ -403,13 +407,13 @@ export default function Dashboard() {
       return;
     }
 
-    // Update balances for contributors, buyer, and consumers
+    // Update balances for contributors and consumers
     for (const personName of expense.contributed_by) {
       const person = peopleList.find((p) => p.name === personName);
       if (person) {
         await supabase
           .from('people')
-          .update({ balance: Number(person.balance || 0) - perContributorShare })
+          .update({ balance: Number(person.balance || 0) + perContributorShare - perConsumerShare })
           .eq('name', personName);
       }
     }
@@ -417,13 +421,13 @@ export default function Dashboard() {
     if (buyer) {
       await supabase
         .from('people')
-        .update({ balance: Number(buyer.balance || 0) - perContributorShare })
+        .update({ balance: Number(buyer.balance || 0) + perContributorShare - perConsumerShare })
         .eq('name', expense.buyer_name);
     }
 
     for (const personName of expense.consumed_by) {
       const person = peopleList.find((p) => p.name === personName);
-      if (person) {
+      if (person && !expense.contributed_by.includes(personName) && personName !== expense.buyer_name) {
         await supabase
           .from('people')
           .update({ balance: Number(person.balance || 0) - perConsumerShare })
@@ -470,10 +474,9 @@ export default function Dashboard() {
     // Revert balance changes for the deleted expense
     const expenseToDelete = dailyExpenses.find((e) => e.id === id);
     if (expenseToDelete) {
+      const totalContributors = expenseToDelete.contributed_by.length + 1;
       const perContributorShare =
-        expenseToDelete.contributed_by.length > 0
-          ? Number(expenseToDelete.total_price) / (expenseToDelete.contributed_by.length + 1)
-          : Number(expenseToDelete.total_price);
+        totalContributors > 0 ? Number(expenseToDelete.total_price) / totalContributors : Number(expenseToDelete.total_price);
       const perConsumerShare =
         expenseToDelete.consumed_by.length > 0
           ? Number(expenseToDelete.total_price) / expenseToDelete.consumed_by.length
@@ -484,7 +487,7 @@ export default function Dashboard() {
         if (person) {
           await supabase
             .from('people')
-            .update({ balance: Number(person.balance || 0) + perContributorShare })
+            .update({ balance: Number(person.balance || 0) - perContributorShare + perConsumerShare })
             .eq('name', personName);
         }
       }
@@ -492,13 +495,13 @@ export default function Dashboard() {
       if (buyer) {
         await supabase
           .from('people')
-          .update({ balance: Number(buyer.balance || 0) + perContributorShare })
+          .update({ balance: Number(buyer.balance || 0) - perContributorShare + perConsumerShare })
           .eq('name', expenseToDelete.buyer_name);
       }
 
       for (const personName of expenseToDelete.consumed_by) {
         const person = peopleList.find((p) => p.name === personName);
-        if (person) {
+        if (person && !expenseToDelete.contributed_by.includes(personName) && personName !== expenseToDelete.buyer_name) {
           await supabase
             .from('people')
             .update({ balance: Number(person.balance || 0) + perConsumerShare })
@@ -530,10 +533,22 @@ export default function Dashboard() {
     const payload = { ...person, balance: Number(person.balance || 0) };
 
     if (editingPerson) {
-      const { error } = await supabase.from('people').update(payload).eq('id', editingPerson.id);
-      if (error) alert('❌ ' + error.message);
-      else {
-        alert('✅ Person updated!');
+      const previousBalance = Number(editingPerson.balance || 0);
+      const newBalanceInput = Number(person.balance || 0);
+      const netBalance = previousBalance + newBalanceInput; // Add new amount to existing balance
+
+      if (!confirm(`Update balance from PKR ${previousBalance.toFixed(2)} to PKR ${netBalance.toFixed(2)}?`)) {
+        return;
+      }
+
+      const { error } = await supabase
+        .from('people')
+        .update({ ...payload, balance: netBalance })
+        .eq('id', editingPerson.id);
+      if (error) {
+        alert('❌ ' + error.message);
+      } else {
+        alert('✅ Person updated! New balance: PKR ' + netBalance.toFixed(2));
         setEditingPerson(null);
         setShowPeopleModal(false);
         fetchPeople();
@@ -592,12 +607,37 @@ export default function Dashboard() {
       }));
       setAnalytics(formatted);
       setShowAnalytics(true);
+    } else if (mode === 'buyer') {
+      let startDate = new Date();
+      if (filterType === 'daily') startDate.setDate(startDate.getDate() - 1);
+      else startDate.setMonth(startDate.getMonth() - 1);
+
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('contributed_by, buyer_name, total_price, date');
+
+      if (error) {
+        alert('❌ ' + error.message);
+        return;
+      }
+
+      const totals: Record<string, number> = {};
+      (data || []).forEach((d: any) => {
+        const contributors = [d.buyer_name, ...d.contributed_by].filter(Boolean);
+        contributors.forEach((contributor) => {
+          totals[contributor] = (totals[contributor] || 0) + Number(d.total_price || 0) / contributors.length;
+        });
+      });
+
+      const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
+      setAnalytics(formatted);
+      setShowAnalytics(true);
     } else {
       let startDate = new Date();
       if (filterType === 'daily') startDate.setDate(startDate.getDate() - 1);
       else startDate.setMonth(startDate.getMonth() - 1);
 
-      const selectCol = mode === 'item' ? 'item_name, total_price, date' : 'buyer_name, total_price, date';
+      const selectCol = 'item_name, total_price, date';
       const { data, error } = await supabase
         .from('expenses')
         .select(selectCol)
@@ -610,7 +650,7 @@ export default function Dashboard() {
 
       const totals: Record<string, number> = {};
       (data || []).forEach((d: any) => {
-        const key = mode === 'item' ? d.item_name || 'Unknown' : d.buyer_name || 'Unknown';
+        const key = d.item_name || 'Unknown';
         totals[key] = (totals[key] || 0) + Number(d.total_price || 0);
       });
 
@@ -757,7 +797,6 @@ export default function Dashboard() {
     doc.save(`analytics_${analyticsMode}_${filter}_${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
-  /* ---------------- Print View helper ---------------- */
   function handlePrint() {
     window.print();
   }
@@ -938,6 +977,19 @@ export default function Dashboard() {
         <h2 style={baseStyles.sectionTitle}>📅 All Expenses</h2>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <select
+            value={expenseFilter}
+            onChange={(e) => {
+              const newFilter = e.target.value as 'daily' | 'monthly' | 'all';
+              setExpenseFilter(newFilter);
+              fetchDailyExpenses(newFilter);
+            }}
+            style={baseStyles.select(dark)}
+          >
+            <option value="all">All Time</option>
+            <option value="monthly">This Month</option>
+            <option value="daily">Today</option>
+          </select>
           <input
             placeholder="Search item / buyer / qty / people"
             value={searchQuery}
@@ -1392,7 +1444,7 @@ export default function Dashboard() {
               onChange={(e) => loadAnalytics(filter, e.target.value as 'buyer' | 'item' | 'balances')}
               style={{ ...baseStyles.input(dark), width: 180 }}
             >
-              <option value="buyer">Buyer (expenses)</option>
+              <option value="buyer">Contributor (expenses)</option>
               <option value="item">Item (expenses)</option>
               <option value="balances">Balances (per person)</option>
             </select>
