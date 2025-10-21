@@ -311,43 +311,31 @@ export default function Dashboard() {
       consumed_by: expense.consumed_by,
     };
 
-    // Calculate shares
-    const totalContributors = expense.contributed_by.length + 1; // Include buyer as contributor
-    const perContributorShare =
-      totalContributors > 0 ? Number(expense.total_price) / totalContributors : Number(expense.total_price);
-    const perConsumerShare =
-      expense.consumed_by.length > 0
-        ? Number(expense.total_price) / expense.consumed_by.length
-        : 0;
+    // CORRECTED LOGIC: Simple contributor-consumer sharing
+    const totalPrice = Number(expense.total_price || 0);
+    
+    // Calculate share per consumer
+    const consumerCount = expense.consumed_by.length;
+    const perConsumerShare = consumerCount > 0 ? totalPrice / consumerCount : 0;
 
     if (editingExpense) {
       // Revert previous balance changes
       const oldExpense = editingExpense;
-      const oldTotalContributors = oldExpense.contributed_by.length + 1;
-      const oldPerContributorShare =
-        oldTotalContributors > 0 ? Number(oldExpense.total_price) / oldTotalContributors : Number(oldExpense.total_price);
-      const oldPerConsumerShare =
-        oldExpense.consumed_by.length > 0
-          ? Number(oldExpense.total_price) / oldExpense.consumed_by.length
-          : 0;
+      const oldTotalPrice = Number(oldExpense.total_price || 0);
+      const oldConsumerCount = oldExpense.consumed_by.length;
+      const oldPerConsumerShare = oldConsumerCount > 0 ? oldTotalPrice / oldConsumerCount : 0;
 
-      for (const personName of oldExpense.contributed_by) {
-        const person = peopleList.find((p) => p.name === personName);
-        if (person) {
-          await supabase
-            .from('people')
-            .update({ balance: Number(person.balance || 0) + oldPerContributorShare })
-            .eq('name', personName);
-        }
-      }
-      const oldBuyer = peopleList.find((p) => p.name === oldExpense.buyer_name);
-      if (oldBuyer) {
+      // Revert old balances
+      // Return money from old contributor
+      const oldContributor = peopleList.find((p) => p.name === oldExpense.buyer_name);
+      if (oldContributor) {
         await supabase
           .from('people')
-          .update({ balance: Number(oldBuyer.balance || 0) + oldPerContributorShare })
+          .update({ balance: Number(oldContributor.balance || 0) - oldTotalPrice })
           .eq('name', oldExpense.buyer_name);
       }
 
+      // Return shares to old consumers
       for (const personName of oldExpense.consumed_by) {
         const person = peopleList.find((p) => p.name === personName);
         if (person) {
@@ -359,29 +347,22 @@ export default function Dashboard() {
       }
 
       // Apply new balance changes
-      for (const personName of expense.contributed_by) {
-        const person = peopleList.find((p) => p.name === personName);
-        if (person) {
-          await supabase
-            .from('people')
-            .update({ balance: Number(person.balance || 0) - perContributorShare + perContributorShare })
-            .eq('name', personName);
-        }
-      }
-      const buyer = peopleList.find((p) => p.name === expense.buyer_name);
-      if (buyer) {
+      // Contributor gets money (they paid)
+      const newContributor = peopleList.find((p) => p.name === expense.buyer_name);
+      if (newContributor) {
         await supabase
           .from('people')
-          .update({ balance: Number(buyer.balance || 0) - perContributorShare + perContributorShare })
+          .update({ balance: Number(newContributor.balance || 0) + totalPrice })
           .eq('name', expense.buyer_name);
       }
 
+      // Consumers pay their shares
       for (const personName of expense.consumed_by) {
         const person = peopleList.find((p) => p.name === personName);
         if (person) {
           await supabase
             .from('people')
-            .update({ balance: Number(person.balance || 0) - perConsumerShare + oldPerConsumerShare })
+            .update({ balance: Number(person.balance || 0) - perConsumerShare })
             .eq('name', personName);
         }
       }
@@ -407,27 +388,20 @@ export default function Dashboard() {
       return;
     }
 
-    // Update balances for contributors and consumers
-    for (const personName of expense.contributed_by) {
-      const person = peopleList.find((p) => p.name === personName);
-      if (person) {
-        await supabase
-          .from('people')
-          .update({ balance: Number(person.balance || 0) + perContributorShare - perConsumerShare })
-          .eq('name', personName);
-      }
-    }
-    const buyer = peopleList.find((p) => p.name === expense.buyer_name);
-    if (buyer) {
+    // Update balances for NEW expense
+    // Contributor gets money (they paid)
+    const contributor = peopleList.find((p) => p.name === expense.buyer_name);
+    if (contributor) {
       await supabase
         .from('people')
-        .update({ balance: Number(buyer.balance || 0) + perContributorShare - perConsumerShare })
+        .update({ balance: Number(contributor.balance || 0) + totalPrice })
         .eq('name', expense.buyer_name);
     }
 
+    // Consumers pay their shares
     for (const personName of expense.consumed_by) {
       const person = peopleList.find((p) => p.name === personName);
-      if (person && !expense.contributed_by.includes(personName) && personName !== expense.buyer_name) {
+      if (person) {
         await supabase
           .from('people')
           .update({ balance: Number(person.balance || 0) - perConsumerShare })
@@ -474,34 +448,23 @@ export default function Dashboard() {
     // Revert balance changes for the deleted expense
     const expenseToDelete = dailyExpenses.find((e) => e.id === id);
     if (expenseToDelete) {
-      const totalContributors = expenseToDelete.contributed_by.length + 1;
-      const perContributorShare =
-        totalContributors > 0 ? Number(expenseToDelete.total_price) / totalContributors : Number(expenseToDelete.total_price);
-      const perConsumerShare =
-        expenseToDelete.consumed_by.length > 0
-          ? Number(expenseToDelete.total_price) / expenseToDelete.consumed_by.length
-          : 0;
+      const totalPrice = Number(expenseToDelete.total_price || 0);
+      const consumerCount = expenseToDelete.consumed_by.length;
+      const perConsumerShare = consumerCount > 0 ? totalPrice / consumerCount : 0;
 
-      for (const personName of expenseToDelete.contributed_by) {
-        const person = peopleList.find((p) => p.name === personName);
-        if (person) {
-          await supabase
-            .from('people')
-            .update({ balance: Number(person.balance || 0) - perContributorShare + perConsumerShare })
-            .eq('name', personName);
-        }
-      }
-      const buyer = peopleList.find((p) => p.name === expenseToDelete.buyer_name);
-      if (buyer) {
+      // Revert contributor balance (take back the money)
+      const contributor = peopleList.find((p) => p.name === expenseToDelete.buyer_name);
+      if (contributor) {
         await supabase
           .from('people')
-          .update({ balance: Number(buyer.balance || 0) - perContributorShare + perConsumerShare })
+          .update({ balance: Number(contributor.balance || 0) - totalPrice })
           .eq('name', expenseToDelete.buyer_name);
       }
 
+      // Revert consumer balances (return their shares)
       for (const personName of expenseToDelete.consumed_by) {
         const person = peopleList.find((p) => p.name === personName);
-        if (person && !expenseToDelete.contributed_by.includes(personName) && personName !== expenseToDelete.buyer_name) {
+        if (person) {
           await supabase
             .from('people')
             .update({ balance: Number(person.balance || 0) + perConsumerShare })
@@ -530,25 +493,17 @@ export default function Dashboard() {
 
   async function handleAddPerson(e: React.FormEvent) {
     e.preventDefault();
-    const payload = { ...person, balance: Number(person.balance || 0) };
+    const payload = { ...person, balance: 0 }; // Always start with 0 balance
 
     if (editingPerson) {
-      const previousBalance = Number(editingPerson.balance || 0);
-      const newBalanceInput = Number(person.balance || 0);
-      const netBalance = previousBalance + newBalanceInput; // Add new amount to existing balance
-
-      if (!confirm(`Update balance from PKR ${previousBalance.toFixed(2)} to PKR ${netBalance.toFixed(2)}?`)) {
-        return;
-      }
-
       const { error } = await supabase
         .from('people')
-        .update({ ...payload, balance: netBalance })
+        .update(payload)
         .eq('id', editingPerson.id);
       if (error) {
         alert('❌ ' + error.message);
       } else {
-        alert('✅ Person updated! New balance: PKR ' + netBalance.toFixed(2));
+        alert('✅ Person updated!');
         setEditingPerson(null);
         setShowPeopleModal(false);
         fetchPeople();
@@ -614,7 +569,7 @@ export default function Dashboard() {
 
       const { data, error } = await supabase
         .from('expenses')
-        .select('contributed_by, buyer_name, total_price, date');
+        .select('buyer_name, total_price, date');
 
       if (error) {
         alert('❌ ' + error.message);
@@ -623,10 +578,8 @@ export default function Dashboard() {
 
       const totals: Record<string, number> = {};
       (data || []).forEach((d: any) => {
-        const contributors = [d.buyer_name, ...d.contributed_by].filter(Boolean);
-        contributors.forEach((contributor) => {
-          totals[contributor] = (totals[contributor] || 0) + Number(d.total_price || 0) / contributors.length;
-        });
+        const buyer = d.buyer_name || 'Unknown';
+        totals[buyer] = (totals[buyer] || 0) + Number(d.total_price || 0);
       });
 
       const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
