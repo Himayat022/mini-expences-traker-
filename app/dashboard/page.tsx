@@ -216,7 +216,7 @@ export default function Dashboard() {
   const [editingPerson, setEditingPerson] = useState<any | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showPeopleList, setShowPeopleList] = useState(false);
-  const [currentTime, setCurrentTime] = useState(''); // ✅ Add this state
+  const [currentTime, setCurrentTime] = useState('');
 
   // Form state
   const [expense, setExpense] = useState({
@@ -303,12 +303,32 @@ export default function Dashboard() {
       query = query.gte('date', startOfMonth.toISOString().split('T')[0]);
     }
     const { data, error } = await query;
-    if (!error && data) setDailyExpenses(data);
+    if (!error && data) {
+      // Fix: Parse JSON strings to arrays
+      const parsedData = data.map(expense => ({
+        ...expense,
+        contributed_by: typeof expense.contributed_by === 'string' 
+          ? JSON.parse(expense.contributed_by) 
+          : expense.contributed_by || [],
+        consumed_by: typeof expense.consumed_by === 'string'
+          ? JSON.parse(expense.consumed_by)
+          : expense.consumed_by || []
+      }));
+      setDailyExpenses(parsedData);
+    }
     else if (error) console.error('fetchDailyExpenses error', error);
   }
 
   async function handleAddExpense(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Validate only today's expenses can be added
+    const today = new Date().toISOString().split('T')[0];
+    if (expense.date !== today) {
+      alert('❌ You can only add expenses for today.');
+      return;
+    }
+
     const contributed_by = Object.entries(expense.contributedAmounts || {}).map(([name, amount]) => ({ name, amount })).filter(c => c.amount > 0);
     const totalCont = contributed_by.reduce((s, c) => s + c.amount, 0);
     if (totalCont !== expense.total_price) {
@@ -434,7 +454,7 @@ export default function Dashboard() {
       quantity: 1,
       price_per_unit: '',
       total_price: 0,
-      date: '',
+      date: today,
       contributedAmounts: {},
       consumed_by: [],
       file: null,
@@ -553,7 +573,7 @@ export default function Dashboard() {
     if (error) alert('❌ ' + error.message);
     else {
       alert('✅ Person added!');
-      setPerson({ name: '', joining_date: '', address: '', phone: '', balance: 0, file: null, document_url: '' });
+      setPerson({ name: '', joining_date: todayISO(), address: '', phone: '', balance: 0, file: null, document_url: '' });
       fetchPeople();
     }
   }
@@ -586,100 +606,116 @@ export default function Dashboard() {
   }
 
   /* ---------------- Analytics ---------------- */
-  async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'contributor' | 'item' | 'balances' | 'per_person' = analyticsMode) {
-    setFilter(filterType);
-    setAnalyticsMode(mode);
+async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'contributor' | 'item' | 'balances' | 'per_person' = analyticsMode) {
+  setFilter(filterType);
+  setAnalyticsMode(mode);
 
-    let startDate = new Date();
-    if (filterType === 'daily') startDate.setDate(startDate.getDate() - 1);
-    else startDate.setMonth(startDate.getMonth() - 1);
-    const startDateStr = startDate.toISOString().split('T')[0];
+  let startDate = new Date();
+  if (filterType === 'daily') startDate.setDate(startDate.getDate() - 1);
+  else startDate.setMonth(startDate.getMonth() - 1);
+  const startDateStr = startDate.toISOString().split('T')[0];
 
-    if (mode === 'balances') {
-      const { data: peopleData, error } = await supabase.from('people').select('name,balance');
-      if (error) {
-        alert('❌ ' + error.message);
-        return;
-      }
-      const formatted = (peopleData || []).map((p: any) => ({
-        name: p.name || 'Unknown',
-        balance: Number(p.balance || 0),
-      }));
-      setAnalytics(formatted);
-      setShowAnalytics(true);
-    } else if (mode === 'contributor') {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('contributed_by, total_price, date')
-        .gte('date', startDateStr);
-
-      if (error) {
-        alert('❌ ' + error.message);
-        return;
-      }
-
-      const totals: Record<string, number> = {};
-      (data || []).forEach((d: any) => {
-        (d.contributed_by || []).forEach((contrib: {name: string, amount: number}) => {
-          totals[contrib.name] = (totals[contrib.name] || 0) + contrib.amount;
-        });
-      });
-
-      const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
-      setAnalytics(formatted);
-      setShowAnalytics(true);
-    } else if (mode === 'item') {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('item_name, total_price, date')
-        .gte('date', startDateStr);
-
-      if (error) {
-        alert('❌ ' + error.message);
-        return;
-      }
-
-      const totals: Record<string, number> = {};
-      (data || []).forEach((d: any) => {
-        const key = d.item_name || 'Unknown';
-        totals[key] = (totals[key] || 0) + Number(d.total_price || 0);
-      });
-
-      const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
-      setAnalytics(formatted);
-      setShowAnalytics(true);
-    } else if (mode === 'per_person') {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('item_name, date, total_price, contributed_by, consumed_by')
-        .gte('date', startDateStr);
-
-      if (error) {
-        alert('❌ ' + error.message);
-        return;
-      }
-
-      const perPersonData: any[] = [];
-      (data || []).forEach((d: any) => {
-        const numConsumers = d.consumed_by.length;
-        const perConsumer = numConsumers > 0 ? d.total_price / numConsumers : 0;
-        d.consumed_by.forEach((consumer: string) => {
-          let paid = 0;
-          const contrib = d.contributed_by.find((c: any) => c.name === consumer);
-          if (contrib) paid = contrib.amount;
-          perPersonData.push({
-            name: consumer,
-            item_name: d.item_name,
-            date: d.date,
-            expense_share: perConsumer,
-            paid,
-          });
-        });
-      });
-      setAnalytics(perPersonData);
-      setShowAnalytics(true);
+  if (mode === 'balances') {
+    const { data: peopleData, error } = await supabase.from('people').select('name,balance');
+    if (error) {
+      alert('❌ ' + error.message);
+      return;
     }
+    const formatted = (peopleData || []).map((p: any) => ({
+      name: p.name || 'Unknown',
+      balance: Number(p.balance || 0),
+    }));
+    setAnalytics(formatted);
+    setShowAnalytics(true);
+  } else if (mode === 'contributor') {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('contributed_by, total_price, date')
+      .gte('date', startDateStr);
+
+    if (error) {
+      alert('❌ ' + error.message);
+      return;
+    }
+
+    const totals: Record<string, number> = {};
+    (data || []).forEach((d: any) => {
+      // Fix: Parse contributed_by if it's a string
+      const contributedBy = typeof d.contributed_by === 'string' 
+        ? JSON.parse(d.contributed_by) 
+        : d.contributed_by || [];
+      
+      (contributedBy || []).forEach((contrib: {name: string, amount: number}) => {
+        totals[contrib.name] = (totals[contrib.name] || 0) + contrib.amount;
+      });
+    });
+
+    const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
+    setAnalytics(formatted);
+    setShowAnalytics(true);
+  } else if (mode === 'item') {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('item_name, total_price, date')
+      .gte('date', startDateStr);
+
+    if (error) {
+      alert('❌ ' + error.message);
+      return;
+    }
+
+    const totals: Record<string, number> = {};
+    (data || []).forEach((d: any) => {
+      const key = d.item_name || 'Unknown';
+      totals[key] = (totals[key] || 0) + Number(d.total_price || 0);
+    });
+
+    const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
+    setAnalytics(formatted);
+    setShowAnalytics(true);
+  } else if (mode === 'per_person') {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('item_name, date, total_price, contributed_by, consumed_by')
+      .gte('date', startDateStr);
+
+    if (error) {
+      alert('❌ ' + error.message);
+      return;
+    }
+
+    const perPersonData: any[] = [];
+    (data || []).forEach((d: any) => {
+      // Fix: Parse both contributed_by and consumed_by
+      const contributedBy = typeof d.contributed_by === 'string' 
+        ? JSON.parse(d.contributed_by) 
+        : d.contributed_by || [];
+      
+      const consumedBy = typeof d.consumed_by === 'string'
+        ? JSON.parse(d.consumed_by)
+        : d.consumed_by || [];
+
+      const numConsumers = consumedBy.length;
+      const perConsumer = numConsumers > 0 ? d.total_price / numConsumers : 0;
+      
+      consumedBy.forEach((consumer: string) => {
+        let paid = 0;
+        const contrib = contributedBy.find((c: any) => c.name === consumer);
+        if (contrib) paid = contrib.amount;
+        perPersonData.push({
+          name: consumer,
+          item_name: d.item_name,
+          date: d.date,
+          expense_share: perConsumer,
+          paid,
+        });
+      });
+    });
+    setAnalytics(perPersonData);
+    setShowAnalytics(true);
   }
+}
+
 
   /* ---------------- Search & Filtering for expenses ---------------- */
   const filteredExpenses = useMemo(() => {
@@ -871,7 +907,6 @@ export default function Dashboard() {
       <div style={baseStyles.header(dark)}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <h1 style={baseStyles.title}>Mini Expense & Balance Tracker</h1>
-          {/* ✅ FIXED: Client-side only time display */}
           <div style={{ fontSize: 12 }}>{currentTime}</div>
         </div>
 
@@ -1085,14 +1120,24 @@ export default function Dashboard() {
                     <td style={baseStyles.td(dark)}>{exp.price_per_unit}</td>
                     <td style={baseStyles.td(dark)}>{exp.total_price}</td>
                     <td style={baseStyles.td(dark)}>
-                      {exp.contributed_by.map((c: any) => `${c.name}: ${c.amount}`).join(', ')}
+                      {Array.isArray(exp.contributed_by) 
+                        ? exp.contributed_by.map((c: any) => `${c.name}: ${c.amount}`).join(', ')
+                        : 'Invalid data'
+                      }
                     </td>
                     <td style={baseStyles.td(dark)}>
-                      {(exp.consumed_by || []).join(', ')}
+                      {Array.isArray(exp.consumed_by) 
+                        ? exp.consumed_by.join(', ')
+                        : 'Invalid data'
+                      }
                     </td>
                     <td style={baseStyles.td(dark)}>{exp.date}</td>
                     <td style={baseStyles.td(dark)}>
-                      {exp.document_url ? <a href={exp.document_url} target="_blank">View</a> : ''}
+                      {exp.document_url ? (
+                        <a href={exp.document_url} target="_blank" rel="noopener noreferrer">
+                          View
+                        </a>
+                      ) : ''}
                     </td>
                     <td style={baseStyles.td(dark)}>
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
@@ -1155,7 +1200,7 @@ export default function Dashboard() {
                           }}
                         >
                           {p.address} • Balance: PKR {Number(p.balance || 0).toFixed(2)}
-                          {p.document_url && <a href={p.document_url} target="_blank"> • Document</a>}
+                          {p.document_url && <a href={p.document_url} target="_blank" rel="noopener noreferrer"> • Document</a>}
                         </div>
                       </div>
                     </div>
@@ -1230,7 +1275,7 @@ export default function Dashboard() {
               onChange={(e) => setPerson({ ...person, file: e.target.files?.[0] || null })}
               style={baseStyles.input(dark)}
             />
-            {person.document_url && <a href={person.document_url} target="_blank">Current Document</a>}
+            {person.document_url && <a href={person.document_url} target="_blank" rel="noopener noreferrer">Current Document</a>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit" style={baseStyles.primaryBtn}>
                 {editingPerson ? 'Update Person' : 'Save Person'}
@@ -1324,7 +1369,8 @@ export default function Dashboard() {
                         ...expense,
                         contributedAmounts: { ...expense.contributedAmounts, [p.name]: Number(e.target.value) || 0 },
                       })}
-style={{ ...baseStyles.input(dark), width: '100px' }}                    />
+                      style={{ ...baseStyles.input(dark), width: '100px' }}
+                    />
                     <input
                       type="checkbox"
                       checked={expense.consumed_by.includes(p.name)}
@@ -1353,7 +1399,7 @@ style={{ ...baseStyles.input(dark), width: '100px' }}                    />
               onChange={(e) => setExpense({ ...expense, file: e.target.files?.[0] || null })}
               style={baseStyles.input(dark)}
             />
-            {expense.document_url && <a href={expense.document_url} target="_blank">Current Document</a>}
+            {expense.document_url && <a href={expense.document_url} target="_blank" rel="noopener noreferrer">Current Document</a>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit" style={baseStyles.primaryBtn}>
                 {editingExpense ? 'Update' : 'Save Expense'}
@@ -1367,7 +1413,7 @@ style={{ ...baseStyles.input(dark), width: '100px' }}                    />
                     quantity: 1,
                     price_per_unit: '',
                     total_price: 0,
-                    date: '',
+                    date: todayISO(),
                     contributedAmounts: {},
                     consumed_by: [],
                     file: null,
@@ -1437,7 +1483,7 @@ style={{ ...baseStyles.input(dark), width: '100px' }}                    />
               onChange={(e) => setPerson({ ...person, file: e.target.files?.[0] || null })}
               style={baseStyles.input(dark)}
             />
-            {person.document_url && <a href={person.document_url} target="_blank">Current Document</a>}
+            {person.document_url && <a href={person.document_url} target="_blank" rel="noopener noreferrer">Current Document</a>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="submit" style={baseStyles.primaryBtn}>
                 {editingPerson ? 'Update Person' : 'Save Person'}
