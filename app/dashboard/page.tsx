@@ -1573,32 +1573,32 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
                 </tr>
               </thead>
               <tbody>
-                {analytics.length === 0 ? (
-                  <tr>
-                    <td style={baseStyles.td(dark)} colSpan={analyticsMode === 'per_person' ? 5 : 2}>
-                      No data
-                    </td>
-                  </tr>
-                ) : (
-                  analytics.map((row: any) => (
-                    <tr key={row.name + (row.item_name || '')}>
-                      <td style={baseStyles.td(dark)}>{row.name}</td>
-                      {analyticsMode === 'per_person' ? (
-                        <>
-                          <td style={baseStyles.td(dark)}>{row.item_name}</td>
-                          <td style={baseStyles.td(dark)}>{row.date}</td>
-                          <td style={baseStyles.td(dark)}>{row.expense_share.toFixed(2)}</td>
-                          <td style={baseStyles.td(dark)}>{row.paid.toFixed(2)}</td>
-                        </>
-                      ) : (
-                        <td style={baseStyles.td(dark)}>
-                          {Number(analyticsMode === 'balances' ? row.balance : row.total).toFixed(2)}
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
+  {analytics.length === 0 ? (
+    <tr>
+      <td style={baseStyles.td(dark)} colSpan={analyticsMode === 'per_person' ? 5 : 2}>
+        No data
+      </td>
+    </tr>
+  ) : (
+    analytics.map((row: any) => (
+      <tr key={row.name + (row.item_name || '')}>
+        <td style={baseStyles.td(dark)}>{row.name}</td>
+        {analyticsMode === 'per_person' ? (
+          <>
+            <td style={baseStyles.td(dark)}>{row.item_name}</td>
+            <td style={baseStyles.td(dark)}>{row.date}</td>
+            <td style={baseStyles.td(dark)}>{(row.expense_share || 0).toFixed(2)}</td>
+            <td style={baseStyles.td(dark)}>{(row.paid || 0).toFixed(2)}</td>
+          </>
+        ) : (
+          <td style={baseStyles.td(dark)}>
+            {Number(analyticsMode === 'balances' ? (row.balance || 0) : (row.total || 0)).toFixed(2)}
+          </td>
+        )}
+      </tr>
+    ))
+  )}
+</tbody>
             </table>
           </div>
 
