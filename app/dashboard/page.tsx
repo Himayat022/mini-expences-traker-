@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import styles from './dashboard.module.css';
 import {
   BarChart,
   Bar,
@@ -25,7 +24,7 @@ import * as XLSX from 'xlsx';
    ========================= */
 const baseStyles = {
   wrapper: (dark: boolean) => ({
-    padding: '24px',
+    padding: '16px 12px',
     minHeight: '100vh',
     background: dark ? '#0b1220' : 'linear-gradient(135deg, #89f7fe, #66a6ff)',
     display: 'flex',
@@ -34,123 +33,197 @@ const baseStyles = {
     fontFamily:
       'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
     color: dark ? '#e6eefc' : '#0f172a',
+    fontSize: '14px', // Base font size for mobile
   }),
   header: (dark: boolean) => ({
     display: 'flex',
+    flexDirection: 'column' as const,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '95%',
+    alignItems: 'flex-start',
+    width: '100%',
     maxWidth: 1200,
-    marginBottom: '18px',
+    marginBottom: '16px',
     gap: 12,
+    '@media (min-width: 768px)': {
+      flexDirection: 'row',
+      alignItems: 'center',
+    }
   }),
-  title: { fontSize: '1.6rem', fontWeight: 700 },
-  topControls: { display: 'flex', gap: 8, alignItems: 'center' },
+  title: { 
+    fontSize: '1.4rem', 
+    fontWeight: 700,
+    marginBottom: '8px',
+    '@media (min-width: 768px)': {
+      fontSize: '1.6rem',
+      marginBottom: 0,
+    }
+  },
+  topControls: { 
+    display: 'flex', 
+    gap: 8, 
+    alignItems: 'center',
+    flexWrap: 'wrap' as const,
+  },
   logoutBtn: (dark: boolean) => ({
     background: 'linear-gradient(90deg,#ef4444,#f97316)',
-    color: '#fff',
-    border: 'none',
-    padding: '8px 12px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  }),
-  cardRow: { display: 'flex', gap: '12px', flexWrap: 'wrap' as const, marginBottom: 16, width: '95%', maxWidth: 1200 },
-  card: (dark: boolean) => ({
-    background: dark ? '#071325' : '#fff',
-    borderRadius: '12px',
-    padding: '14px',
-    width: '220px',
-    boxShadow: dark ? '0 6px 14px rgba(0,0,0,0.4)' : '0 6px 14px rgba(0,0,0,0.06)',
-    textAlign: 'left' as const,
-    color: dark ? '#e6eefc' : '#0f172a',
-  }),
-  dailyCard: (dark: boolean) => ({
-    background: dark ? '#071325' : '#fff',
-    padding: '18px',
-    borderRadius: '14px',
-    width: '95%',
-    maxWidth: 1200,
-    margin: '8px auto',
-    boxShadow: dark ? '0 6px 18px rgba(0,0,0,0.6)' : '0 6px 18px rgba(0,0,0,0.06)',
-  }),
-  sectionTitle: { fontSize: '1.15rem', marginBottom: 12, fontWeight: 600 },
-  table: (dark: boolean) => ({
-    width: '100%',
-    borderCollapse: 'collapse' as const,
-    background: dark ? '#071325' : '#f8fafc',
-    color: dark ? '#e6eefc' : '#0f172a',
-  }),
-  th: (dark: boolean) => ({
-    backgroundColor: dark ? '#0b2540' : '#0070f3',
-    color: '#fff',
-    padding: '10px 12px',
-    fontWeight: 600,
-    textAlign: 'center' as const,
-  }),
-  td: (dark: boolean) => ({
-    padding: '8px 10px',
-    borderBottom: dark ? '1px solid rgba(255,255,255,0.03)' : '1px solid #e6eefc',
-    textAlign: 'center' as const,
-    color: dark ? '#e6eefc' : '#0f172a',
-  }),
-  deleteBtn: {
-    background: '#ef4444',
     color: '#fff',
     border: 'none',
     padding: '6px 10px',
     borderRadius: '6px',
     cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '12px',
+  }),
+  cardRow: { 
+    display: 'flex', 
+    gap: '8px', 
+    flexWrap: 'wrap' as const, 
+    marginBottom: 16, 
+    width: '100%', 
+    maxWidth: 1200,
+    justifyContent: 'center',
+  },
+  card: (dark: boolean) => ({
+    background: dark ? '#071325' : '#fff',
+    borderRadius: '10px',
+    padding: '12px',
+    width: 'calc(50% - 8px)',
+    minWidth: '140px',
+    boxShadow: dark ? '0 4px 8px rgba(0,0,0,0.3)' : '0 4px 8px rgba(0,0,0,0.06)',
+    textAlign: 'left' as const,
+    color: dark ? '#e6eefc' : '#0f172a',
+    '@media (min-width: 768px)': {
+      width: '220px',
+      padding: '14px',
+    }
+  }),
+  dailyCard: (dark: boolean) => ({
+    background: dark ? '#071325' : '#fff',
+    padding: '14px',
+    borderRadius: '12px',
+    width: '100%',
+    maxWidth: 1200,
+    margin: '8px auto',
+    boxShadow: dark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.06)',
+    overflow: 'hidden',
+  }),
+  sectionTitle: { 
+    fontSize: '1.1rem', 
+    marginBottom: 10, 
+    fontWeight: 600,
+    '@media (min-width: 768px)': {
+      fontSize: '1.15rem',
+    }
+  },
+  table: (dark: boolean) => ({
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    background: dark ? '#071325' : '#f8fafc',
+    color: dark ? '#e6eefc' : '#0f172a',
+    fontSize: '12px',
+    '@media (min-width: 768px)': {
+      fontSize: '14px',
+    }
+  }),
+  th: (dark: boolean) => ({
+    backgroundColor: dark ? '#0b2540' : '#0070f3',
+    color: '#fff',
+    padding: '8px 6px',
+    fontWeight: 600,
+    textAlign: 'center' as const,
+    fontSize: '11px',
+    whiteSpace: 'nowrap' as const,
+    '@media (min-width: 768px)': {
+      padding: '10px 12px',
+      fontSize: '14px',
+    }
+  }),
+  td: (dark: boolean) => ({
+    padding: '6px 4px',
+    borderBottom: dark ? '1px solid rgba(255,255,255,0.03)' : '1px solid #e6eefc',
+    textAlign: 'center' as const,
+    color: dark ? '#e6eefc' : '#0f172a',
+    fontSize: '11px',
+    wordBreak: 'break-word' as const,
+    '@media (min-width: 768px)': {
+      padding: '8px 10px',
+      fontSize: '14px',
+    }
+  }),
+  deleteBtn: {
+    background: '#ef4444',
+    color: '#fff',
+    border: 'none',
+    padding: '4px 6px',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '10px',
+    '@media (min-width: 768px)': {
+      padding: '6px 10px',
+      fontSize: '12px',
+    }
   },
   smallDeleteBtn: (dark: boolean) => ({
     background: dark ? '#071325' : '#fff',
     border: '1px solid #f87171',
     color: '#ef4444',
-    padding: '6px 8px',
-    borderRadius: 8,
+    padding: '4px 6px',
+    borderRadius: 6,
     cursor: 'pointer',
     fontWeight: 700,
+    fontSize: '10px',
+    '@media (min-width: 768px)': {
+      padding: '6px 8px',
+    }
   }),
   primaryBtn: {
     background: 'linear-gradient(90deg,#2563eb,#7c3aed)',
     color: '#fff',
     border: 'none',
-    padding: '8px 12px',
-    borderRadius: 8,
+    padding: '6px 10px',
+    borderRadius: 6,
     cursor: 'pointer',
     fontWeight: 600,
+    fontSize: '12px',
+    '@media (min-width: 768px)': {
+      padding: '8px 12px',
+    }
   },
   input: (dark: boolean) => ({
-    padding: '8px 10px',
-    borderRadius: 8,
+    padding: '6px 8px',
+    borderRadius: 6,
     border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #d1d5db',
     width: '100%',
     background: dark ? '#062033' : '#fff',
     color: dark ? '#e6eefc' : '#0f172a',
     boxSizing: 'border-box' as const,
+    fontSize: '14px',
   }),
   select: (dark: boolean) => ({
-    padding: '8px 10px',
-    borderRadius: 8,
+    padding: '6px 8px',
+    borderRadius: 6,
     border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #d1d5db',
     background: dark ? '#062033' : '#fff',
     color: dark ? '#e6eefc' : '#0f172a',
     boxSizing: 'border-box' as const,
+    fontSize: '14px',
   }),
   checklistContainer: (dark: boolean) => ({
-    maxHeight: '200px',
+    maxHeight: '150px',
     overflowY: 'auto' as const,
     border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #d1d5db',
-    borderRadius: 8,
-    padding: '8px',
+    borderRadius: 6,
+    padding: '6px',
     background: dark ? '#062033' : '#fff',
     color: dark ? '#e6eefc' : '#0f172a',
+    fontSize: '12px',
   }),
   checklistItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
-    padding: '4px 0',
+    gap: 6,
+    padding: '2px 0',
+    fontSize: '12px',
   },
   modalOverlay: {
     position: 'fixed' as const,
@@ -163,42 +236,107 @@ const baseStyles = {
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 9999,
+    padding: '10px',
   },
   modal: (dark: boolean) => ({
     background: dark ? '#04121a' : 'white',
-    padding: 18,
-    borderRadius: 10,
-    width: '94%',
-    maxWidth: 860,
-    boxShadow: '0 12px 40px rgba(0,0,0,0.28)',
+    padding: 14,
+    borderRadius: 8,
+    width: '100%',
+    maxWidth: '95vw',
+    maxHeight: '90vh',
+    overflow: 'auto',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
     color: dark ? '#e6eefc' : undefined,
+    '@media (min-width: 768px)': {
+      padding: 18,
+      maxWidth: 860,
+    }
   }),
-  form: { display: 'flex', flexDirection: 'column' as const, gap: 8, marginTop: 8 },
+  form: { 
+    display: 'flex', 
+    flexDirection: 'column' as const, 
+    gap: 6, 
+    marginTop: 8,
+    fontSize: '14px',
+  },
   peopleRow: (dark: boolean) => ({
     display: 'flex',
+    flexDirection: 'column' as const,
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
+    alignItems: 'flex-start',
+    padding: 8,
+    borderRadius: 6,
     background: dark ? 'rgba(255,255,255,0.02)' : '#fbfdff',
     marginBottom: 8,
+    gap: 8,
+    '@media (min-width: 768px)': {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 10,
+    }
   }),
-  analyticsControls: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' as const },
-  footer: { marginTop: 18, width: '95%', maxWidth: 1200, textAlign: 'center' as const, padding: '18px 0' },
+  analyticsControls: { 
+    display: 'flex', 
+    flexDirection: 'column' as const,
+    gap: 8, 
+    alignItems: 'stretch', 
+    marginBottom: 12, 
+    flexWrap: 'wrap' as const,
+    '@media (min-width: 768px)': {
+      flexDirection: 'row',
+      alignItems: 'center',
+    }
+  },
+  footer: { 
+    marginTop: 16, 
+    width: '100%', 
+    maxWidth: 1200, 
+    textAlign: 'center' as const, 
+    padding: '16px 0' 
+  },
   footerBox: (dark: boolean) => ({
     background: dark ? '#04121a' : '#fff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 12,
     width: '100%',
-    boxShadow: dark ? '0 6px 18px rgba(0,0,0,0.6)' : '0 6px 18px rgba(0,0,0,0.06)',
+    boxShadow: dark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.06)',
     color: dark ? '#e6eefc' : undefined,
+    fontSize: '12px',
+    '@media (min-width: 768px)': {
+      padding: 16,
+      fontSize: '14px',
+    }
   }),
+  filterRow: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 8,
+    marginBottom: 12,
+    flexWrap: 'wrap' as const,
+    '@media (min-width: 768px)': {
+      flexDirection: 'row',
+      alignItems: 'center',
+    }
+  },
+  mobileHidden: {
+    display: 'none',
+    '@media (min-width: 768px)': {
+      display: 'table-cell',
+    }
+  },
+  mobileShow: {
+    display: 'table-cell',
+    '@media (min-width: 768px)': {
+      display: 'none',
+    }
+  }
 };
 
 /* =========================
    ✅ Main Component
    ========================= */
-export default function Dashboard() {
+export default function ExpenseDashboard() {
   const router = useRouter();
 
   // UI state
@@ -246,7 +384,7 @@ export default function Dashboard() {
   const [peopleList, setPeopleList] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [filter, setFilter] = useState<'daily' | 'monthly'>('monthly');
-  const [analyticsMode, setAnalyticsMode] = useState<'contributor' | 'item' | 'balances' | 'per_person'>('balances');
+  const [analyticsMode, setAnalyticsMode] = useState<'item' | 'person'>('item');
   const [expenseFilter, setExpenseFilter] = useState<'daily' | 'monthly' | 'all'>('all');
 
   // Search/filter UI
@@ -337,13 +475,13 @@ export default function Dashboard() {
     }
     let document_url = expense.document_url;
     if (expense.file) {
-      const fileName = `expense_${Date.now()}.${expense.file.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('expenses_docs').upload(fileName, expense.file);
+      const fileName = `expense_doc_${Date.now()}.${expense.file.name.split('.').pop()}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('document').upload(fileName, expense.file);
       if (uploadError) {
         alert('❌ Upload failed: ' + uploadError.message);
         return;
       }
-      document_url = supabase.storage.from('expenses_docs').getPublicUrl(uploadData.path).data.publicUrl;
+      document_url = supabase.storage.from('document').getPublicUrl(uploadData.path).data.publicUrl;
     }
     const payload = {
       item_name: expense.item_name,
@@ -543,13 +681,13 @@ export default function Dashboard() {
     e.preventDefault();
     let document_url = person.document_url;
     if (person.file) {
-      const fileName = `person_${Date.now()}.${person.file.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('people_docs').upload(fileName, person.file);
+      const fileName = `person_doc_${Date.now()}.${person.file.name.split('.').pop()}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('document').upload(fileName, person.file);
       if (uploadError) {
         alert('❌ Upload failed: ' + uploadError.message);
         return;
       }
-      document_url = supabase.storage.from('people_docs').getPublicUrl(uploadData.path).data.publicUrl;
+      document_url = supabase.storage.from('document').getPublicUrl(uploadData.path).data.publicUrl;
     }
     const payload = { ...person, balance: Number(person.balance || 0), document_url };
 
@@ -606,7 +744,7 @@ export default function Dashboard() {
   }
 
   /* ---------------- Analytics ---------------- */
-async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'contributor' | 'item' | 'balances' | 'per_person' = analyticsMode) {
+async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'item' | 'person' = analyticsMode) {
   setFilter(filterType);
   setAnalyticsMode(mode);
 
@@ -615,107 +753,122 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
   else startDate.setMonth(startDate.getMonth() - 1);
   const startDateStr = startDate.toISOString().split('T')[0];
 
-  if (mode === 'balances') {
-    const { data: peopleData, error } = await supabase.from('people').select('name,balance');
-    if (error) {
-      alert('❌ ' + error.message);
-      return;
-    }
-    const formatted = (peopleData || []).map((p: any) => ({
-      name: p.name || 'Unknown',
-      balance: Number(p.balance || 0),
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .gte('date', startDateStr)
+    .order('date', { ascending: false });
+
+  if (error) {
+    alert('❌ ' + error.message);
+    return;
+  }
+
+  // Parse JSON strings to arrays for all expenses
+  const parsedExpenses = (data || []).map(expense => ({
+    ...expense,
+    contributed_by: typeof expense.contributed_by === 'string' 
+      ? JSON.parse(expense.contributed_by) 
+      : expense.contributed_by || [],
+    consumed_by: typeof expense.consumed_by === 'string'
+      ? JSON.parse(expense.consumed_by)
+      : expense.consumed_by || []
+  }));
+
+  if (mode === 'item') {
+    // Item Expense Details - Show each item with full breakdown
+    const itemDetails = parsedExpenses.map(expense => {
+      const totalConsumers = expense.consumed_by.length;
+      const perConsumerShare = totalConsumers > 0 ? expense.total_price / totalConsumers : 0;
+      
+      return {
+        id: expense.id,
+        item_name: expense.item_name || 'Unknown',
+        date: expense.date,
+        quantity: expense.quantity,
+        price_per_unit: expense.price_per_unit,
+        total_price: expense.total_price,
+        contributors: expense.contributed_by.map((c: any) => `${c.name}: PKR ${c.amount}`).join(', '),
+        consumers: expense.consumed_by.join(', '),
+        per_consumer_share: perConsumerShare.toFixed(2),
+        document_url: expense.document_url
+      };
+    });
+    
+    setAnalytics(itemDetails);
+    setShowAnalytics(true);
+    
+  } else if (mode === 'person') {
+    // Person Expense Details - Complete financial summary per person
+    const personSummary: Record<string, any> = {};
+
+    // Initialize all people
+    peopleList.forEach(person => {
+      personSummary[person.name] = {
+        name: person.name,
+        total_contributed: 0,
+        total_expense_share: 0,
+        net_balance: 0,
+        expenses: [] as any[]
+      };
+    });
+
+    // Calculate contributions and expense shares
+    parsedExpenses.forEach(expense => {
+      const totalConsumers = expense.consumed_by.length;
+      const perConsumerShare = totalConsumers > 0 ? expense.total_price / totalConsumers : 0;
+
+      // Process contributors
+      expense.contributed_by.forEach((contrib: any) => {
+        if (personSummary[contrib.name]) {
+          personSummary[contrib.name].total_contributed += contrib.amount;
+          personSummary[contrib.name].net_balance += contrib.amount;
+          
+          // Add to expense details
+          personSummary[contrib.name].expenses.push({
+            item_name: expense.item_name,
+            date: expense.date,
+            type: 'contribution',
+            amount: contrib.amount,
+            description: `Contributed to ${expense.item_name}`
+          });
+        }
+      });
+
+      // Process consumers
+      expense.consumed_by.forEach((consumer: string) => {
+        if (personSummary[consumer]) {
+          personSummary[consumer].total_expense_share += perConsumerShare;
+          personSummary[consumer].net_balance -= perConsumerShare;
+          
+          // Check if they also contributed to this expense
+          const contributed = expense.contributed_by.find((c: any) => c.name === consumer);
+          const netForThisItem = (contributed?.amount || 0) - perConsumerShare;
+          
+          personSummary[consumer].expenses.push({
+            item_name: expense.item_name,
+            date: expense.date,
+            type: 'consumption',
+            amount: -perConsumerShare,
+            description: `Share for ${expense.item_name}${contributed ? ` (Contributed: PKR ${contributed.amount})` : ''}`
+          });
+        }
+      });
+    });
+
+    // Convert to array format for display
+    const formattedAnalytics = Object.values(personSummary).map((person: any) => ({
+      name: person.name,
+      total_contributed: person.total_contributed || 0,
+      total_expense_share: person.total_expense_share || 0,
+      net_balance: person.net_balance || 0,
+      expense_count: person.expenses.length
     }));
-    setAnalytics(formatted);
-    setShowAnalytics(true);
-  } else if (mode === 'contributor') {
-    const { data, error } = await supabase
-      .from('expenses')
-      .select('contributed_by, total_price, date')
-      .gte('date', startDateStr);
 
-    if (error) {
-      alert('❌ ' + error.message);
-      return;
-    }
-
-    const totals: Record<string, number> = {};
-    (data || []).forEach((d: any) => {
-      // Fix: Parse contributed_by if it's a string
-      const contributedBy = typeof d.contributed_by === 'string' 
-        ? JSON.parse(d.contributed_by) 
-        : d.contributed_by || [];
-      
-      (contributedBy || []).forEach((contrib: {name: string, amount: number}) => {
-        totals[contrib.name] = (totals[contrib.name] || 0) + contrib.amount;
-      });
-    });
-
-    const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
-    setAnalytics(formatted);
-    setShowAnalytics(true);
-  } else if (mode === 'item') {
-    const { data, error } = await supabase
-      .from('expenses')
-      .select('item_name, total_price, date')
-      .gte('date', startDateStr);
-
-    if (error) {
-      alert('❌ ' + error.message);
-      return;
-    }
-
-    const totals: Record<string, number> = {};
-    (data || []).forEach((d: any) => {
-      const key = d.item_name || 'Unknown';
-      totals[key] = (totals[key] || 0) + Number(d.total_price || 0);
-    });
-
-    const formatted = Object.entries(totals).map(([key, total]) => ({ name: key, total }));
-    setAnalytics(formatted);
-    setShowAnalytics(true);
-  } else if (mode === 'per_person') {
-    const { data, error } = await supabase
-      .from('expenses')
-      .select('item_name, date, total_price, contributed_by, consumed_by')
-      .gte('date', startDateStr);
-
-    if (error) {
-      alert('❌ ' + error.message);
-      return;
-    }
-
-    const perPersonData: any[] = [];
-    (data || []).forEach((d: any) => {
-      // Fix: Parse both contributed_by and consumed_by
-      const contributedBy = typeof d.contributed_by === 'string' 
-        ? JSON.parse(d.contributed_by) 
-        : d.contributed_by || [];
-      
-      const consumedBy = typeof d.consumed_by === 'string'
-        ? JSON.parse(d.consumed_by)
-        : d.consumed_by || [];
-
-      const numConsumers = consumedBy.length;
-      const perConsumer = numConsumers > 0 ? d.total_price / numConsumers : 0;
-      
-      consumedBy.forEach((consumer: string) => {
-        let paid = 0;
-        const contrib = contributedBy.find((c: any) => c.name === consumer);
-        if (contrib) paid = contrib.amount;
-        perPersonData.push({
-          name: consumer,
-          item_name: d.item_name,
-          date: d.date,
-          expense_share: perConsumer,
-          paid,
-        });
-      });
-    });
-    setAnalytics(perPersonData);
+    setAnalytics(formattedAnalytics);
     setShowAnalytics(true);
   }
 }
-
 
   /* ---------------- Search & Filtering for expenses ---------------- */
   const filteredExpenses = useMemo(() => {
@@ -804,29 +957,59 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
   }
 
   function exportAnalyticsCSV() {
-    if (analyticsMode === 'balances') {
-      const headers = ['Name', 'Balance (PKR)'];
-      const rows = [headers, ...analytics.map((r: any) => [r.name, String(r.balance || 0)])];
-      downloadCSV(rows, `analytics_balances_${filter}_${new Date().toISOString().slice(0, 10)}.csv`);
-    } else if (analyticsMode === 'per_person') {
-      const headers = ['Name', 'Item Name', 'Date', 'Expense Share (PKR)', 'Paid (PKR)'];
-      const rows = [headers, ...analytics.map((r: any) => [r.name, r.item_name, r.date, String(r.expense_share.toFixed(2)), String(r.paid.toFixed(2))])];
-      downloadCSV(rows, `analytics_per_person_${filter}_${new Date().toISOString().slice(0, 10)}.csv`);
+    if (analyticsMode === 'person') {
+      const headers = ['Name', 'Total Contributed (PKR)', 'Total Expense Share (PKR)', 'Net Balance (PKR)', 'Expense Count'];
+      const rows = [headers, ...analytics.map((r: any) => [
+        r.name, 
+        (r.total_contributed || 0).toFixed(2), 
+        (r.total_expense_share || 0).toFixed(2), 
+        (r.net_balance || 0).toFixed(2),
+        r.expense_count || 0
+      ])];
+      downloadCSV(rows, `person_expenses_${filter}_${new Date().toISOString().slice(0, 10)}.csv`);
     } else {
-      const headers = ['Key', 'Total (PKR)'];
-      const rows = [headers, ...analytics.map((r: any) => [r.name, String(r.total || 0)])];
-      downloadCSV(rows, `analytics_${analyticsMode}_${filter}_${new Date().toISOString().slice(0, 10)}.csv`);
+      const headers = ['Item Name', 'Date', 'Quantity', 'Price/Unit', 'Total Price', 'Contributors', 'Consumers', 'Per Consumer Share'];
+      const rows = [headers, ...analytics.map((r: any) => [
+        r.item_name,
+        r.date,
+        r.quantity,
+        r.price_per_unit,
+        r.total_price,
+        r.contributors,
+        r.consumers,
+        r.per_consumer_share
+      ])];
+      downloadCSV(rows, `item_expenses_${filter}_${new Date().toISOString().slice(0, 10)}.csv`);
     }
   }
 
   function exportAnalyticsXLSX() {
     let wsData: any[];
-    if (analyticsMode === 'balances') {
-      wsData = [['Name', 'Balance'], ...analytics.map((r: any) => [r.name, r.balance || 0])];
-    } else if (analyticsMode === 'per_person') {
-      wsData = [['Name', 'Item Name', 'Date', 'Expense Share', 'Paid'], ...analytics.map((r: any) => [r.name, r.item_name, r.date, r.expense_share, r.paid])];
+    if (analyticsMode === 'person') {
+      wsData = [
+        ['Name', 'Total Contributed (PKR)', 'Total Expense Share (PKR)', 'Net Balance (PKR)', 'Expense Count'],
+        ...analytics.map((r: any) => [
+          r.name, 
+          r.total_contributed || 0, 
+          r.total_expense_share || 0, 
+          r.net_balance || 0,
+          r.expense_count || 0
+        ])
+      ];
     } else {
-      wsData = [['Key', 'Total'], ...analytics.map((r: any) => [r.name, r.total || 0])];
+      wsData = [
+        ['Item Name', 'Date', 'Quantity', 'Price/Unit', 'Total Price', 'Contributors', 'Consumers', 'Per Consumer Share'],
+        ...analytics.map((r: any) => [
+          r.item_name,
+          r.date,
+          r.quantity,
+          r.price_per_unit,
+          r.total_price,
+          r.contributors,
+          r.consumers,
+          r.per_consumer_share
+        ])
+      ];
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
@@ -841,17 +1024,29 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
     const doc = new jsPDF({ orientation: 'landscape' });
     doc.text(`Analytics - ${analyticsMode} (${filter})`, 14, 12);
     let head: any, body: any;
-    if (analyticsMode === 'balances') {
-      head = [['Name', 'Balance']];
-      body = analytics.map((r: any) => [r.name, r.balance || 0]);
-    } else if (analyticsMode === 'per_person') {
-      head = [['Name', 'Item Name', 'Date', 'Expense Share', 'Paid']];
-      body = analytics.map((r: any) => [r.name, r.item_name, r.date, r.expense_share.toFixed(2), r.paid.toFixed(2)]);
+    if (analyticsMode === 'person') {
+      head = [['Name', 'Total Contributed', 'Total Expense Share', 'Net Balance', 'Expense Count']];
+      body = analytics.map((r: any) => [
+        r.name, 
+        (r.total_contributed || 0).toFixed(2), 
+        (r.total_expense_share || 0).toFixed(2), 
+        (r.net_balance || 0).toFixed(2),
+        r.expense_count || 0
+      ]);
     } else {
-      head = [['Key', 'Total']];
-      body = analytics.map((r: any) => [r.name, r.total || 0]);
+      head = [['Item Name', 'Date', 'Quantity', 'Price/Unit', 'Total Price', 'Contributors', 'Consumers', 'Per Consumer Share']];
+      body = analytics.map((r: any) => [
+        r.item_name,
+        r.date,
+        r.quantity,
+        r.price_per_unit,
+        r.total_price,
+        r.contributors,
+        r.consumers,
+        r.per_consumer_share
+      ]);
     }
-    (doc as any).autoTable({ head, body, startY: 18, styles: { fontSize: 9 } });
+    (doc as any).autoTable({ head, body, startY: 18, styles: { fontSize: 8 } });
     doc.save(`analytics_${analyticsMode}_${filter}_${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
@@ -861,10 +1056,19 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
 
   /* ---------------- Chart data ---------------- */
   const chartData = useMemo(() => {
-    return analytics.map((a: any) => ({
-      name: a.name,
-      value: analyticsMode === 'balances' ? a.balance || 0 : a.total || 0,
-    }));
+    if (analyticsMode === 'person') {
+      return analytics.map((a: any) => ({
+        name: a.name,
+        contributed: a.total_contributed || 0,
+        expense_share: a.total_expense_share || 0,
+        net_balance: a.net_balance || 0,
+      }));
+    } else {
+      return analytics.map((a: any) => ({
+        name: a.item_name,
+        value: a.total_price || 0,
+      }));
+    }
   }, [analytics, analyticsMode]);
 
   /* ---------------- UI Cards actions  ---------------- */
@@ -896,7 +1100,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
       },
     },
     { title: '📋 People List', onClick: () => setShowPeopleList(true) },
-    { title: '📈 Analytics', onClick: () => loadAnalytics('monthly', 'balances') },
+    { title: '📈 Analytics', onClick: () => loadAnalytics('monthly', 'item') },
   ];
 
   /* =========================
@@ -905,14 +1109,14 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
   return (
     <div style={baseStyles.wrapper(dark)}>
       <div style={baseStyles.header(dark)}>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <h1 style={baseStyles.title}>Mini Expense & Balance Tracker</h1>
-          <div style={{ fontSize: 12 }}>{currentTime}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+          <h1 style={baseStyles.title}>Expense Tracker</h1>
+          <div style={{ fontSize: 11, color: dark ? '#9fb4d9' : '#64748b' }}>{currentTime}</div>
         </div>
 
         <div style={baseStyles.topControls}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
               <input
                 type="checkbox"
                 checked={dark}
@@ -920,22 +1124,23 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
                   setDark((v) => !v);
                   localStorage.setItem('me_dark', !dark ? '1' : '0');
                 }}
+                style={{ width: 16, height: 16 }}
               />
               Dark
             </label>
             <button
-              style={baseStyles.primaryBtn}
+              style={{...baseStyles.primaryBtn, fontSize: 11, padding: '4px 8px'}}
               onClick={() => {
                 setShowAnalytics(true);
                 loadAnalytics(filter, analyticsMode);
               }}
             >
-              Open Analytics
+              Analytics
             </button>
-            <button style={baseStyles.primaryBtn} onClick={handlePrint}>
+            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '4px 8px'}} onClick={handlePrint}>
               Print
             </button>
-            <button style={baseStyles.logoutBtn(dark)} onClick={handleLogout}>
+            <button style={{...baseStyles.logoutBtn(dark), fontSize: 11, padding: '4px 8px'}} onClick={handleLogout}>
               🚪 Logout
             </button>
           </div>
@@ -945,42 +1150,42 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
       {/* Summary cards */}
       <div style={baseStyles.cardRow}>
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
             Total Expenses
           </div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>
-            PKR {summary.totalExpenses.toFixed(2)}
+          <div style={{ fontSize: 16, fontWeight: 700 }}>
+            PKR {summary.totalExpenses.toFixed(0)}
           </div>
-          <div style={{ fontSize: 12, marginTop: 6 }}>Period: {filter}</div>
+          <div style={{ fontSize: 10, marginTop: 4 }}>All expenses</div>
         </div>
 
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
             Total People
           </div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>
             {summary.totalPeople}
           </div>
-          <div style={{ fontSize: 12, marginTop: 6 }}>Manage members</div>
+          <div style={{ fontSize: 10, marginTop: 4 }}>Manage members</div>
         </div>
 
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
             Total Balance
           </div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>
-            PKR {summary.totalBalance.toFixed(2)}
+          <div style={{ fontSize: 16, fontWeight: 700 }}>
+            PKR {summary.totalBalance.toFixed(0)}
           </div>
-          <div style={{ fontSize: 12, marginTop: 6 }}>All members</div>
+          <div style={{ fontSize: 10, marginTop: 4 }}>All members</div>
         </div>
 
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
             Quick Actions
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 4, marginTop: 6, flexDirection: 'column' }}>
             <button
-              style={baseStyles.primaryBtn}
+              style={{...baseStyles.primaryBtn, fontSize: 10, padding: '4px 6px'}}
               onClick={() => {
                 setEditingExpense(null);
                 setExpense({
@@ -1000,7 +1205,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               + Expense
             </button>
             <button
-              style={baseStyles.primaryBtn}
+              style={{...baseStyles.primaryBtn, fontSize: 10, padding: '4px 6px'}}
               onClick={() => {
                 setEditingPerson(null);
                 setPerson({
@@ -1026,19 +1231,19 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
         {cards.map((c, idx) => (
           <div
             key={idx}
-            style={{ ...baseStyles.card(dark), cursor: 'pointer' }}
+            style={{ ...baseStyles.card(dark), cursor: 'pointer', textAlign: 'center' as const }}
             onClick={c.onClick}
           >
-            <div style={{ fontWeight: 700 }}>{c.title}</div>
+            <div style={{ fontWeight: 700, fontSize: 12 }}>{c.title}</div>
           </div>
         ))}
       </div>
 
       {/* Expense Search / Filter */}
       <div style={{ ...baseStyles.dailyCard(dark) }}>
-        <h2 style={baseStyles.sectionTitle}>📅 All Expenses</h2>
+        <h2 style={baseStyles.sectionTitle}>📅 Expenses</h2>
 
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={baseStyles.filterRow}>
           <select
             value={expenseFilter}
             onChange={(e) => {
@@ -1046,117 +1251,122 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               setExpenseFilter(newFilter);
               fetchDailyExpenses(newFilter);
             }}
-            style={baseStyles.select(dark)}
+            style={{...baseStyles.select(dark), width: '100%'}}
           >
             <option value="all">All Time</option>
             <option value="monthly">This Month</option>
             <option value="daily">Today</option>
           </select>
           <input
-            placeholder="Search item / qty / people"
+            placeholder="Search expenses..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={baseStyles.input(dark)}
           />
-          <input
-            type="date"
-            value={dateFrom || ''}
-            onChange={(e) => setDateFrom(e.target.value || null)}
-            style={baseStyles.input(dark)}
-          />
-          <input
-            type="date"
-            value={dateTo || ''}
-            onChange={(e) => setDateTo(e.target.value || null)}
-            style={baseStyles.input(dark)}
-          />
+          <div style={{display: 'flex', gap: 8, width: '100%'}}>
+            <input
+              type="date"
+              value={dateFrom || ''}
+              onChange={(e) => setDateFrom(e.target.value || null)}
+              style={{...baseStyles.input(dark), flex: 1}}
+            />
+            <input
+              type="date"
+              value={dateTo || ''}
+              onChange={(e) => setDateTo(e.target.value || null)}
+              style={{...baseStyles.input(dark), flex: 1}}
+            />
+          </div>
           <button
-            style={baseStyles.primaryBtn}
+            style={{...baseStyles.primaryBtn, width: '100%'}}
             onClick={() => {
               setSearchQuery('');
               setDateFrom(null);
               setDateTo(null);
             }}
           >
-            Reset
+            Reset Filters
           </button>
 
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button style={baseStyles.primaryBtn} onClick={exportExpensesCSV}>
+          <div style={{ display: 'flex', gap: 6, width: '100%', justifyContent: 'center' }}>
+            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '6px 8px'}} onClick={exportExpensesCSV}>
               CSV
             </button>
-            <button style={baseStyles.primaryBtn} onClick={exportExpensesXLSX}>
-              XLSX
+            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '6px 8px'}} onClick={exportExpensesXLSX}>
+              Excel
             </button>
-            <button style={baseStyles.primaryBtn} onClick={exportExpensesPDF}>
+            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '6px 8px'}} onClick={exportExpensesPDF}>
               PDF
             </button>
           </div>
         </div>
 
         {filteredExpenses.length === 0 ? (
-          <p style={{ textAlign: 'center', marginTop: 10 }}>No expenses found.</p>
+          <p style={{ textAlign: 'center', marginTop: 10, fontSize: 14 }}>No expenses found.</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table style={baseStyles.table(dark)}>
               <thead>
                 <tr>
                   <th style={baseStyles.th(dark)}>Item</th>
-                  <th style={baseStyles.th(dark)}>Quantity</th>
-                  <th style={baseStyles.th(dark)}>Price/Unit</th>
                   <th style={baseStyles.th(dark)}>Total</th>
-                  <th style={baseStyles.th(dark)}>Contributed By</th>
-                  <th style={baseStyles.th(dark)}>Consumed By</th>
+                  <th style={{...baseStyles.th(dark), ...baseStyles.mobileHidden}}>Contributors</th>
+                  <th style={{...baseStyles.th(dark), ...baseStyles.mobileHidden}}>Consumers</th>
                   <th style={baseStyles.th(dark)}>Date</th>
-                  <th style={baseStyles.th(dark)}>Document</th>
                   <th style={baseStyles.th(dark)}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredExpenses.map((exp) => (
                   <tr key={exp.id}>
-                    <td style={baseStyles.td(dark)}>{exp.item_name}</td>
-                    <td style={baseStyles.td(dark)}>{exp.quantity}</td>
-                    <td style={baseStyles.td(dark)}>{exp.price_per_unit}</td>
-                    <td style={baseStyles.td(dark)}>{exp.total_price}</td>
                     <td style={baseStyles.td(dark)}>
+                      <div style={{fontWeight: 'bold'}}>{exp.item_name}</div>
+                      <div style={{fontSize: 10, color: dark ? '#9fb4d9' : '#64748b'}}>
+                        Qty: {exp.quantity} × {exp.price_per_unit}
+                      </div>
+                    </td>
+                    <td style={baseStyles.td(dark)}>
+                      <strong>PKR {exp.total_price}</strong>
+                    </td>
+                    <td style={{...baseStyles.td(dark), ...baseStyles.mobileHidden}}>
                       {Array.isArray(exp.contributed_by) 
-                        ? exp.contributed_by.map((c: any) => `${c.name}: ${c.amount}`).join(', ')
+                        ? exp.contributed_by.map((c: any) => (
+                            <div key={c.name} style={{fontSize: 10}}>
+                              {c.name}: {c.amount}
+                            </div>
+                          ))
                         : 'Invalid data'
                       }
                     </td>
-                    <td style={baseStyles.td(dark)}>
+                    <td style={{...baseStyles.td(dark), ...baseStyles.mobileHidden}}>
                       {Array.isArray(exp.consumed_by) 
                         ? exp.consumed_by.join(', ')
                         : 'Invalid data'
                       }
                     </td>
-                    <td style={baseStyles.td(dark)}>{exp.date}</td>
                     <td style={baseStyles.td(dark)}>
-                      {exp.document_url ? (
-                        <a href={exp.document_url} target="_blank" rel="noopener noreferrer">
-                          View
-                        </a>
-                      ) : ''}
+                      {new Date(exp.date).toLocaleDateString()}
                     </td>
                     <td style={baseStyles.td(dark)}>
-                      <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', gap: 4, justifyContent: 'center', flexDirection: 'column' }}>
                         {exp.date === new Date().toISOString().split('T')[0] && (
                           <>
                             <button
                               style={{
                                 ...baseStyles.smallDeleteBtn(dark),
                                 background: dark ? '#08304a' : '#fff',
+                                fontSize: 10,
+                                padding: '2px 4px'
                               }}
                               onClick={() => handleEditExpense(exp)}
                             >
-                              ✏️
+                              ✏️ Edit
                             </button>
                             <button
-                              style={baseStyles.deleteBtn}
+                              style={{...baseStyles.deleteBtn, fontSize: 10, padding: '2px 4px'}}
                               onClick={() => handleDeleteExpense(exp.id)}
                             >
-                              🗑️
+                              🗑️ Delete
                             </button>
                           </>
                         )}
@@ -1172,7 +1382,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
 
       {/* People List Modal */}
       {showPeopleList && (
-        <Modal
+        <DashboardModal
           title={`People (${peopleList.length})`}
           onClose={() => setShowPeopleList(false)}
           dark={dark}
@@ -1195,7 +1405,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
                         {p.phone ? p.phone + ' • ' : ''} {p.joining_date}
                         <div
                           style={{
-                            fontSize: 12,
+                            fontSize: 11,
                             color: dark ? '#9fb4d9' : '#64748b',
                           }}
                         >
@@ -1205,16 +1415,15 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{ fontSize: 20 }}>🧑</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <button
-                        style={baseStyles.primaryBtn}
+                        style={{...baseStyles.primaryBtn, fontSize: 11, padding: '4px 8px'}}
                         onClick={() => handleEditPerson(p)}
                       >
                         Edit
                       </button>
                       <button
-                        style={baseStyles.smallDeleteBtn(dark)}
+                        style={{...baseStyles.smallDeleteBtn(dark), fontSize: 11, padding: '4px 8px'}}
                         onClick={() => handleDeletePerson(p.id)}
                       >
                         🗑️
@@ -1300,12 +1509,12 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               </button>
             </div>
           </form>
-        </Modal>
+        </DashboardModal>
       )}
 
       {/* Expense Modal */}
       {showExpenseModal && (
-        <Modal
+        <DashboardModal
           title={editingExpense ? 'Edit Expense' : 'Add Expense'}
           onClose={() => {
             setShowExpenseModal(false);
@@ -1321,25 +1530,27 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               style={baseStyles.input(dark)}
               required
             />
-            <input
-              type="number"
-              placeholder="Quantity"
-              value={expense.quantity}
-              onChange={(e) => setExpense({ ...expense, quantity: Number(e.target.value) })}
-              style={baseStyles.input(dark)}
-              min={1}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Price per Unit"
-              value={expense.price_per_unit as any}
-              onChange={(e) => setExpense({ ...expense, price_per_unit: e.target.value })}
-              style={baseStyles.input(dark)}
-              step="0.01"
-              min={0}
-              required
-            />
+            <div style={{display: 'flex', gap: 8}}>
+              <input
+                type="number"
+                placeholder="Quantity"
+                value={expense.quantity}
+                onChange={(e) => setExpense({ ...expense, quantity: Number(e.target.value) })}
+                style={{...baseStyles.input(dark), flex: 1}}
+                min={1}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Price per Unit"
+                value={expense.price_per_unit as any}
+                onChange={(e) => setExpense({ ...expense, price_per_unit: e.target.value })}
+                style={{...baseStyles.input(dark), flex: 1}}
+                step="0.01"
+                min={0}
+                required
+              />
+            </div>
             <input
               type="text"
               placeholder="Total Price (auto)"
@@ -1358,7 +1569,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               ) : (
                 peopleList.map((p) => (
                   <div key={p.id} style={baseStyles.checklistItem}>
-                    <label>{p.name}</label>
+                    <label style={{minWidth: 80}}>{p.name}</label>
                     <input
                       type="number"
                       placeholder="Amount"
@@ -1369,7 +1580,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
                         ...expense,
                         contributedAmounts: { ...expense.contributedAmounts, [p.name]: Number(e.target.value) || 0 },
                       })}
-                      style={{ ...baseStyles.input(dark), width: '100px' }}
+                      style={{ ...baseStyles.input(dark), width: 80 }}
                     />
                     <input
                       type="checkbox"
@@ -1381,7 +1592,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
                         setExpense({ ...expense, consumed_by: updatedConsumers });
                       }}
                     />
-                    <label>Consumed</label>
+                    <label style={{fontSize: 12}}>Consumed</label>
                   </div>
                 ))
               )}
@@ -1426,12 +1637,12 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               </button>
             </div>
           </form>
-        </Modal>
+        </DashboardModal>
       )}
 
       {/* People Modal (separate) */}
       {showPeopleModal && (
-        <Modal
+        <DashboardModal
           title={editingPerson ? 'Edit Person' : 'Add Person'}
           onClose={() => {
             setShowPeopleModal(false);
@@ -1508,149 +1719,162 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
               </button>
             </div>
           </form>
-        </Modal>
+        </DashboardModal>
       )}
 
       {/* Analytics Modal */}
       {showAnalytics && (
-        <Modal title="Analytics" onClose={() => setShowAnalytics(false)} dark={dark}>
+        <DashboardModal title="Analytics" onClose={() => setShowAnalytics(false)} dark={dark}>
           <div style={baseStyles.analyticsControls}>
-            <label style={{ fontWeight: 600 }}>Filter:</label>
+            <label style={{ fontWeight: 600, fontSize: 14 }}>Filter:</label>
             <select
               value={filter}
               onChange={(e) => loadAnalytics(e.target.value as 'daily' | 'monthly', analyticsMode)}
-              style={{ ...baseStyles.input(dark), width: 160 }}
+              style={{ ...baseStyles.input(dark), width: '100%' }}
             >
               <option value="daily">Daily</option>
               <option value="monthly">Monthly</option>
             </select>
 
-            <label style={{ fontWeight: 600 }}>Group by:</label>
+            <label style={{ fontWeight: 600, fontSize: 14 }}>Report Type:</label>
             <select
               value={analyticsMode}
-              onChange={(e) => loadAnalytics(filter, e.target.value as 'contributor' | 'item' | 'balances' | 'per_person')}
-              style={{ ...baseStyles.input(dark), width: 180 }}
+              onChange={(e) => loadAnalytics(filter, e.target.value as 'item' | 'person')}
+              style={{ ...baseStyles.input(dark), width: '100%' }}
             >
-              <option value="contributor">Contributor (expenses)</option>
-              <option value="item">Item (expenses)</option>
-              <option value="balances">Balances (per person)</option>
-              <option value="per_person">Per Person Details</option>
+              <option value="item">Item Expenses</option>
+              <option value="person">Person Summary</option>
             </select>
 
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-              <button style={baseStyles.primaryBtn} onClick={exportAnalyticsCSV}>
+            <div style={{ display: 'flex', gap: 6, width: '100%', justifyContent: 'center' }}>
+              <button style={{...baseStyles.primaryBtn, fontSize: 11}} onClick={exportAnalyticsCSV}>
                 CSV
               </button>
-              <button style={baseStyles.primaryBtn} onClick={exportAnalyticsXLSX}>
-                XLSX
+              <button style={{...baseStyles.primaryBtn, fontSize: 11}} onClick={exportAnalyticsXLSX}>
+                Excel
               </button>
-              <button style={baseStyles.primaryBtn} onClick={exportAnalyticsPDF}>
+              <button style={{...baseStyles.primaryBtn, fontSize: 11}} onClick={exportAnalyticsPDF}>
                 PDF
               </button>
             </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table style={baseStyles.table(dark)}>
               <thead>
                 <tr>
-                  {analyticsMode === 'per_person' ? (
+                  {analyticsMode === 'person' ? (
                     <>
                       <th style={baseStyles.th(dark)}>Name</th>
-                      <th style={baseStyles.th(dark)}>Item Name</th>
-                      <th style={baseStyles.th(dark)}>Date</th>
-                      <th style={baseStyles.th(dark)}>Expense Share (PKR)</th>
-                      <th style={baseStyles.th(dark)}>Paid (PKR)</th>
+                      <th style={baseStyles.th(dark)}>Contributed</th>
+                      <th style={baseStyles.th(dark)}>Share</th>
+                      <th style={baseStyles.th(dark)}>Balance</th>
                     </>
                   ) : (
                     <>
-                      <th style={baseStyles.th(dark)}>Name</th>
-                      <th style={baseStyles.th(dark)}>
-                        {analyticsMode === 'balances' ? 'Balance (PKR)' : 'Total Expense (PKR)'}
-                      </th>
+                      <th style={baseStyles.th(dark)}>Item</th>
+                      <th style={baseStyles.th(dark)}>Date</th>
+                      <th style={baseStyles.th(dark)}>Total</th>
+                      <th style={{...baseStyles.th(dark), ...baseStyles.mobileHidden}}>Share/Person</th>
                     </>
                   )}
                 </tr>
               </thead>
               <tbody>
-  {analytics.length === 0 ? (
-    <tr>
-      <td style={baseStyles.td(dark)} colSpan={analyticsMode === 'per_person' ? 5 : 2}>
-        No data
-      </td>
-    </tr>
-  ) : (
-    analytics.map((row: any) => (
-      <tr key={row.name + (row.item_name || '')}>
-        <td style={baseStyles.td(dark)}>{row.name}</td>
-        {analyticsMode === 'per_person' ? (
-          <>
-            <td style={baseStyles.td(dark)}>{row.item_name}</td>
-            <td style={baseStyles.td(dark)}>{row.date}</td>
-            <td style={baseStyles.td(dark)}>{(row.expense_share || 0).toFixed(2)}</td>
-            <td style={baseStyles.td(dark)}>{(row.paid || 0).toFixed(2)}</td>
-          </>
-        ) : (
-          <td style={baseStyles.td(dark)}>
-            {Number(analyticsMode === 'balances' ? (row.balance || 0) : (row.total || 0)).toFixed(2)}
-          </td>
-        )}
-      </tr>
-    ))
-  )}
-</tbody>
+                {analytics.length === 0 ? (
+                  <tr>
+                    <td style={baseStyles.td(dark)} colSpan={analyticsMode === 'person' ? 4 : 4}>
+                      No data
+                    </td>
+                  </tr>
+                ) : (
+                  analytics.map((row: any, index: number) => (
+                    <tr key={index}>
+                      {analyticsMode === 'person' ? (
+                        <>
+                          <td style={baseStyles.td(dark)}>{row.name}</td>
+                          <td style={baseStyles.td(dark)}>{(row.total_contributed || 0).toFixed(0)}</td>
+                          <td style={baseStyles.td(dark)}>{(row.total_expense_share || 0).toFixed(0)}</td>
+                          <td style={baseStyles.td(dark)}>
+                            <span style={{ 
+                              color: (row.net_balance || 0) >= 0 ? (dark ? '#4ade80' : '#16a34a') : (dark ? '#f87171' : '#dc2626'),
+                              fontWeight: 'bold'
+                            }}>
+                              {(row.net_balance || 0).toFixed(0)}
+                            </span>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td style={baseStyles.td(dark)}>{row.item_name}</td>
+                          <td style={baseStyles.td(dark)}>{new Date(row.date).toLocaleDateString()}</td>
+                          <td style={baseStyles.td(dark)}>{row.total_price}</td>
+                          <td style={{...baseStyles.td(dark), ...baseStyles.mobileHidden}}>{row.per_consumer_share}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
           </div>
 
-          <div style={{ width: '100%', height: 360, marginTop: 16 }}>
+          <div style={{ width: '100%', height: 300, marginTop: 12 }}>
             <ResponsiveContainer>
               <BarChart
                 data={chartData}
-                margin={{ top: 10, right: 10, left: 0, bottom: 50 }}
+                margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" interval={0} angle={-20} textAnchor="end" height={80} />
-                <YAxis />
+                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" height={60} fontSize={10} />
+                <YAxis fontSize={10} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#2563eb" />
+                {analyticsMode === 'person' ? (
+                  <>
+                    <Bar dataKey="contributed" fill="#2563eb" name="Contributed" />
+                    <Bar dataKey="expense_share" fill="#dc2626" name="Share" />
+                  </>
+                ) : (
+                  <Bar dataKey="value" fill="#7c3aed" name="Total" />
+                )}
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </Modal>
+        </DashboardModal>
       )}
 
       {/* Footer */}
       <div style={baseStyles.footer}>
         <div style={baseStyles.footerBox(dark)}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>
-            Mini Expense Tracker — Contact & Credits
+          <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 14 }}>
+            Expense Tracker
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left' as const }}>
             <div>
-              <div style={{ fontWeight: 600 }}>Himayat Ali (Software Developer)</div>
-              <div>📞 0347-2424022</div>
+              <div style={{ fontWeight: 600, fontSize: 12 }}>Himayat Ali (Developer)</div>
+              <div style={{fontSize: 11}}>📞 0347-2424022</div>
             </div>
 
             <div>
-              <div style={{ fontWeight: 600 }}>Ahmad Shahi (Software Engineer)</div>
-              <div>📞 0310-5855299</div>
+              <div style={{ fontWeight: 600, fontSize: 12 }}>Ahmad Shahi (Engineer)</div>
+              <div style={{fontSize: 11}}>📞 0310-5855299</div>
             </div>
 
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 600 }}>For website work & inquiries:</div>
-              <div>himayatali@example.com</div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 12 }}>Contact:</div>
+              <div style={{fontSize: 11}}>himayatali@example.com</div>
             </div>
           </div>
 
           <div
             style={{
               marginTop: 12,
-              fontSize: 12,
+              fontSize: 10,
               color: dark ? '#9fb4d9' : '#475569',
             }}
           >
-            © {new Date().getFullYear()} Mini Expense Tracker — made by Himayat Ali and Ahmad Shahi. All rights reserved.
+            © {new Date().getFullYear()} Expense Tracker
           </div>
         </div>
       </div>
@@ -1661,7 +1885,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'co
 /* =========================
    🧩 Modal Component (local)
    ========================= */
-function Modal({
+function DashboardModal({
   title,
   children,
   onClose,
@@ -1675,17 +1899,18 @@ function Modal({
   return (
     <div style={baseStyles.modalOverlay}>
       <div style={baseStyles.modal(dark)}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ marginTop: 0 }}>{title}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h2 style={{ marginTop: 0, fontSize: 18 }}>{title}</h2>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={onClose}
               style={{
                 background: '#e2e8f0',
                 border: 'none',
-                padding: '8px 10px',
+                padding: '6px 10px',
                 borderRadius: 6,
                 cursor: 'pointer',
+                fontSize: 12,
               }}
             >
               Close
