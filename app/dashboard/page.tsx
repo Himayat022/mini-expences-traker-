@@ -24,7 +24,7 @@ import * as XLSX from 'xlsx';
    ========================= */
 const baseStyles = {
   wrapper: (dark: boolean) => ({
-    padding: '16px 12px',
+    padding: '24px',
     minHeight: '100vh',
     background: dark ? '#0b1220' : 'linear-gradient(135deg, #89f7fe, #66a6ff)',
     display: 'flex',
@@ -33,197 +33,123 @@ const baseStyles = {
     fontFamily:
       'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
     color: dark ? '#e6eefc' : '#0f172a',
-    fontSize: '14px', // Base font size for mobile
   }),
   header: (dark: boolean) => ({
     display: 'flex',
-    flexDirection: 'column' as const,
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-    maxWidth: 1200,
-    marginBottom: '16px',
-    gap: 12,
-    '@media (min-width: 768px)': {
-      flexDirection: 'row',
-      alignItems: 'center',
-    }
-  }),
-  title: { 
-    fontSize: '1.4rem', 
-    fontWeight: 700,
-    marginBottom: '8px',
-    '@media (min-width: 768px)': {
-      fontSize: '1.6rem',
-      marginBottom: 0,
-    }
-  },
-  topControls: { 
-    display: 'flex', 
-    gap: 8, 
     alignItems: 'center',
-    flexWrap: 'wrap' as const,
-  },
+    width: '95%',
+    maxWidth: 1200,
+    marginBottom: '18px',
+    gap: 12,
+  }),
+  title: { fontSize: '1.6rem', fontWeight: 700 },
+  topControls: { display: 'flex', gap: 8, alignItems: 'center' },
   logoutBtn: (dark: boolean) => ({
     background: 'linear-gradient(90deg,#ef4444,#f97316)',
     color: '#fff',
     border: 'none',
-    padding: '6px 10px',
-    borderRadius: '6px',
+    padding: '8px 12px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-    fontSize: '12px',
   }),
-  cardRow: { 
-    display: 'flex', 
-    gap: '8px', 
-    flexWrap: 'wrap' as const, 
-    marginBottom: 16, 
-    width: '100%', 
-    maxWidth: 1200,
-    justifyContent: 'center',
-  },
+  cardRow: { display: 'flex', gap: '12px', flexWrap: 'wrap' as const, marginBottom: 16, width: '95%', maxWidth: 1200 },
   card: (dark: boolean) => ({
     background: dark ? '#071325' : '#fff',
-    borderRadius: '10px',
-    padding: '12px',
-    width: 'calc(50% - 8px)',
-    minWidth: '140px',
-    boxShadow: dark ? '0 4px 8px rgba(0,0,0,0.3)' : '0 4px 8px rgba(0,0,0,0.06)',
+    borderRadius: '12px',
+    padding: '14px',
+    width: '220px',
+    boxShadow: dark ? '0 6px 14px rgba(0,0,0,0.4)' : '0 6px 14px rgba(0,0,0,0.06)',
     textAlign: 'left' as const,
     color: dark ? '#e6eefc' : '#0f172a',
-    '@media (min-width: 768px)': {
-      width: '220px',
-      padding: '14px',
-    }
   }),
   dailyCard: (dark: boolean) => ({
     background: dark ? '#071325' : '#fff',
-    padding: '14px',
-    borderRadius: '12px',
-    width: '100%',
+    padding: '18px',
+    borderRadius: '14px',
+    width: '95%',
     maxWidth: 1200,
     margin: '8px auto',
-    boxShadow: dark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.06)',
-    overflow: 'hidden',
+    boxShadow: dark ? '0 6px 18px rgba(0,0,0,0.6)' : '0 6px 18px rgba(0,0,0,0.06)',
   }),
-  sectionTitle: { 
-    fontSize: '1.1rem', 
-    marginBottom: 10, 
-    fontWeight: 600,
-    '@media (min-width: 768px)': {
-      fontSize: '1.15rem',
-    }
-  },
+  sectionTitle: { fontSize: '1.15rem', marginBottom: 12, fontWeight: 600 },
   table: (dark: boolean) => ({
     width: '100%',
     borderCollapse: 'collapse' as const,
     background: dark ? '#071325' : '#f8fafc',
     color: dark ? '#e6eefc' : '#0f172a',
-    fontSize: '12px',
-    '@media (min-width: 768px)': {
-      fontSize: '14px',
-    }
   }),
   th: (dark: boolean) => ({
     backgroundColor: dark ? '#0b2540' : '#0070f3',
     color: '#fff',
-    padding: '8px 6px',
+    padding: '10px 12px',
     fontWeight: 600,
     textAlign: 'center' as const,
-    fontSize: '11px',
-    whiteSpace: 'nowrap' as const,
-    '@media (min-width: 768px)': {
-      padding: '10px 12px',
-      fontSize: '14px',
-    }
   }),
   td: (dark: boolean) => ({
-    padding: '6px 4px',
+    padding: '8px 10px',
     borderBottom: dark ? '1px solid rgba(255,255,255,0.03)' : '1px solid #e6eefc',
     textAlign: 'center' as const,
     color: dark ? '#e6eefc' : '#0f172a',
-    fontSize: '11px',
-    wordBreak: 'break-word' as const,
-    '@media (min-width: 768px)': {
-      padding: '8px 10px',
-      fontSize: '14px',
-    }
   }),
   deleteBtn: {
     background: '#ef4444',
     color: '#fff',
     border: 'none',
-    padding: '4px 6px',
-    borderRadius: '4px',
+    padding: '6px 10px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '10px',
-    '@media (min-width: 768px)': {
-      padding: '6px 10px',
-      fontSize: '12px',
-    }
   },
   smallDeleteBtn: (dark: boolean) => ({
     background: dark ? '#071325' : '#fff',
     border: '1px solid #f87171',
     color: '#ef4444',
-    padding: '4px 6px',
-    borderRadius: 6,
+    padding: '6px 8px',
+    borderRadius: 8,
     cursor: 'pointer',
     fontWeight: 700,
-    fontSize: '10px',
-    '@media (min-width: 768px)': {
-      padding: '6px 8px',
-    }
   }),
   primaryBtn: {
     background: 'linear-gradient(90deg,#2563eb,#7c3aed)',
     color: '#fff',
     border: 'none',
-    padding: '6px 10px',
-    borderRadius: 6,
+    padding: '8px 12px',
+    borderRadius: 8,
     cursor: 'pointer',
     fontWeight: 600,
-    fontSize: '12px',
-    '@media (min-width: 768px)': {
-      padding: '8px 12px',
-    }
   },
   input: (dark: boolean) => ({
-    padding: '6px 8px',
-    borderRadius: 6,
+    padding: '8px 10px',
+    borderRadius: 8,
     border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #d1d5db',
     width: '100%',
     background: dark ? '#062033' : '#fff',
     color: dark ? '#e6eefc' : '#0f172a',
     boxSizing: 'border-box' as const,
-    fontSize: '14px',
   }),
   select: (dark: boolean) => ({
-    padding: '6px 8px',
-    borderRadius: 6,
+    padding: '8px 10px',
+    borderRadius: 8,
     border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #d1d5db',
     background: dark ? '#062033' : '#fff',
     color: dark ? '#e6eefc' : '#0f172a',
     boxSizing: 'border-box' as const,
-    fontSize: '14px',
   }),
   checklistContainer: (dark: boolean) => ({
-    maxHeight: '150px',
+    maxHeight: '200px',
     overflowY: 'auto' as const,
     border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #d1d5db',
-    borderRadius: 6,
-    padding: '6px',
+    borderRadius: 8,
+    padding: '8px',
     background: dark ? '#062033' : '#fff',
     color: dark ? '#e6eefc' : '#0f172a',
-    fontSize: '12px',
   }),
   checklistItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: 6,
-    padding: '2px 0',
-    fontSize: '12px',
+    gap: 8,
+    padding: '4px 0',
   },
   modalOverlay: {
     position: 'fixed' as const,
@@ -236,101 +162,36 @@ const baseStyles = {
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 9999,
-    padding: '10px',
   },
   modal: (dark: boolean) => ({
     background: dark ? '#04121a' : 'white',
-    padding: 14,
-    borderRadius: 8,
-    width: '100%',
-    maxWidth: '95vw',
-    maxHeight: '90vh',
-    overflow: 'auto',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
+    padding: 18,
+    borderRadius: 10,
+    width: '94%',
+    maxWidth: 860,
+    boxShadow: '0 12px 40px rgba(0,0,0,0.28)',
     color: dark ? '#e6eefc' : undefined,
-    '@media (min-width: 768px)': {
-      padding: 18,
-      maxWidth: 860,
-    }
   }),
-  form: { 
-    display: 'flex', 
-    flexDirection: 'column' as const, 
-    gap: 6, 
-    marginTop: 8,
-    fontSize: '14px',
-  },
+  form: { display: 'flex', flexDirection: 'column' as const, gap: 8, marginTop: 8 },
   peopleRow: (dark: boolean) => ({
     display: 'flex',
-    flexDirection: 'column' as const,
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 8,
-    borderRadius: 6,
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
     background: dark ? 'rgba(255,255,255,0.02)' : '#fbfdff',
     marginBottom: 8,
-    gap: 8,
-    '@media (min-width: 768px)': {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 10,
-    }
   }),
-  analyticsControls: { 
-    display: 'flex', 
-    flexDirection: 'column' as const,
-    gap: 8, 
-    alignItems: 'stretch', 
-    marginBottom: 12, 
-    flexWrap: 'wrap' as const,
-    '@media (min-width: 768px)': {
-      flexDirection: 'row',
-      alignItems: 'center',
-    }
-  },
-  footer: { 
-    marginTop: 16, 
-    width: '100%', 
-    maxWidth: 1200, 
-    textAlign: 'center' as const, 
-    padding: '16px 0' 
-  },
+  analyticsControls: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' as const },
+  footer: { marginTop: 18, width: '95%', maxWidth: 1200, textAlign: 'center' as const, padding: '18px 0' },
   footerBox: (dark: boolean) => ({
     background: dark ? '#04121a' : '#fff',
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 12,
+    padding: 16,
     width: '100%',
-    boxShadow: dark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.06)',
+    boxShadow: dark ? '0 6px 18px rgba(0,0,0,0.6)' : '0 6px 18px rgba(0,0,0,0.06)',
     color: dark ? '#e6eefc' : undefined,
-    fontSize: '12px',
-    '@media (min-width: 768px)': {
-      padding: 16,
-      fontSize: '14px',
-    }
   }),
-  filterRow: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: 8,
-    marginBottom: 12,
-    flexWrap: 'wrap' as const,
-    '@media (min-width: 768px)': {
-      flexDirection: 'row',
-      alignItems: 'center',
-    }
-  },
-  mobileHidden: {
-    display: 'none',
-    '@media (min-width: 768px)': {
-      display: 'table-cell',
-    }
-  },
-  mobileShow: {
-    display: 'table-cell',
-    '@media (min-width: 768px)': {
-      display: 'none',
-    }
-  }
 };
 
 /* =========================
@@ -476,12 +337,12 @@ export default function ExpenseDashboard() {
     let document_url = expense.document_url;
     if (expense.file) {
       const fileName = `expense_doc_${Date.now()}.${expense.file.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('document').upload(fileName, expense.file);
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('expense_documents').upload(fileName, expense.file);
       if (uploadError) {
         alert('❌ Upload failed: ' + uploadError.message);
         return;
       }
-      document_url = supabase.storage.from('document').getPublicUrl(uploadData.path).data.publicUrl;
+      document_url = supabase.storage.from('expense_documents').getPublicUrl(uploadData.path).data.publicUrl;
     }
     const payload = {
       item_name: expense.item_name,
@@ -682,12 +543,12 @@ export default function ExpenseDashboard() {
     let document_url = person.document_url;
     if (person.file) {
       const fileName = `person_doc_${Date.now()}.${person.file.name.split('.').pop()}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('document').upload(fileName, person.file);
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('person_documents').upload(fileName, person.file);
       if (uploadError) {
         alert('❌ Upload failed: ' + uploadError.message);
         return;
       }
-      document_url = supabase.storage.from('document').getPublicUrl(uploadData.path).data.publicUrl;
+      document_url = supabase.storage.from('person_documents').getPublicUrl(uploadData.path).data.publicUrl;
     }
     const payload = { ...person, balance: Number(person.balance || 0), document_url };
 
@@ -1109,14 +970,14 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
   return (
     <div style={baseStyles.wrapper(dark)}>
       <div style={baseStyles.header(dark)}>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          <h1 style={baseStyles.title}>Expense Tracker</h1>
-          <div style={{ fontSize: 11, color: dark ? '#9fb4d9' : '#64748b' }}>{currentTime}</div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 style={baseStyles.title}>Mini Expense & Balance Tracker</h1>
+          <div style={{ fontSize: 12 }}>{currentTime}</div>
         </div>
 
         <div style={baseStyles.topControls}>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <input
                 type="checkbox"
                 checked={dark}
@@ -1124,23 +985,22 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
                   setDark((v) => !v);
                   localStorage.setItem('me_dark', !dark ? '1' : '0');
                 }}
-                style={{ width: 16, height: 16 }}
               />
               Dark
             </label>
             <button
-              style={{...baseStyles.primaryBtn, fontSize: 11, padding: '4px 8px'}}
+              style={baseStyles.primaryBtn}
               onClick={() => {
                 setShowAnalytics(true);
                 loadAnalytics(filter, analyticsMode);
               }}
             >
-              Analytics
+              Open Analytics
             </button>
-            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '4px 8px'}} onClick={handlePrint}>
+            <button style={baseStyles.primaryBtn} onClick={handlePrint}>
               Print
             </button>
-            <button style={{...baseStyles.logoutBtn(dark), fontSize: 11, padding: '4px 8px'}} onClick={handleLogout}>
+            <button style={baseStyles.logoutBtn(dark)} onClick={handleLogout}>
               🚪 Logout
             </button>
           </div>
@@ -1150,42 +1010,42 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
       {/* Summary cards */}
       <div style={baseStyles.cardRow}>
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
             Total Expenses
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>
-            PKR {summary.totalExpenses.toFixed(0)}
+          <div style={{ fontSize: 20, fontWeight: 700 }}>
+            PKR {summary.totalExpenses.toFixed(2)}
           </div>
-          <div style={{ fontSize: 10, marginTop: 4 }}>All expenses</div>
+          <div style={{ fontSize: 12, marginTop: 6 }}>Period: {filter}</div>
         </div>
 
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
             Total People
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>
             {summary.totalPeople}
           </div>
-          <div style={{ fontSize: 10, marginTop: 4 }}>Manage members</div>
+          <div style={{ fontSize: 12, marginTop: 6 }}>Manage members</div>
         </div>
 
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
             Total Balance
           </div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>
-            PKR {summary.totalBalance.toFixed(0)}
+          <div style={{ fontSize: 20, fontWeight: 700 }}>
+            PKR {summary.totalBalance.toFixed(2)}
           </div>
-          <div style={{ fontSize: 10, marginTop: 4 }}>All members</div>
+          <div style={{ fontSize: 12, marginTop: 6 }}>All members</div>
         </div>
 
         <div style={baseStyles.card(dark)}>
-          <div style={{ fontSize: 10, color: dark ? '#9fb4d9' : '#64748b' }}>
+          <div style={{ fontSize: 12, color: dark ? '#9fb4d9' : '#64748b' }}>
             Quick Actions
           </div>
-          <div style={{ display: 'flex', gap: 4, marginTop: 6, flexDirection: 'column' }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             <button
-              style={{...baseStyles.primaryBtn, fontSize: 10, padding: '4px 6px'}}
+              style={baseStyles.primaryBtn}
               onClick={() => {
                 setEditingExpense(null);
                 setExpense({
@@ -1205,7 +1065,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
               + Expense
             </button>
             <button
-              style={{...baseStyles.primaryBtn, fontSize: 10, padding: '4px 6px'}}
+              style={baseStyles.primaryBtn}
               onClick={() => {
                 setEditingPerson(null);
                 setPerson({
@@ -1231,19 +1091,19 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
         {cards.map((c, idx) => (
           <div
             key={idx}
-            style={{ ...baseStyles.card(dark), cursor: 'pointer', textAlign: 'center' as const }}
+            style={{ ...baseStyles.card(dark), cursor: 'pointer' }}
             onClick={c.onClick}
           >
-            <div style={{ fontWeight: 700, fontSize: 12 }}>{c.title}</div>
+            <div style={{ fontWeight: 700 }}>{c.title}</div>
           </div>
         ))}
       </div>
 
       {/* Expense Search / Filter */}
       <div style={{ ...baseStyles.dailyCard(dark) }}>
-        <h2 style={baseStyles.sectionTitle}>📅 Expenses</h2>
+        <h2 style={baseStyles.sectionTitle}>📅 All Expenses</h2>
 
-        <div style={baseStyles.filterRow}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           <select
             value={expenseFilter}
             onChange={(e) => {
@@ -1251,122 +1111,117 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
               setExpenseFilter(newFilter);
               fetchDailyExpenses(newFilter);
             }}
-            style={{...baseStyles.select(dark), width: '100%'}}
+            style={baseStyles.select(dark)}
           >
             <option value="all">All Time</option>
             <option value="monthly">This Month</option>
             <option value="daily">Today</option>
           </select>
           <input
-            placeholder="Search expenses..."
+            placeholder="Search item / qty / people"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={baseStyles.input(dark)}
           />
-          <div style={{display: 'flex', gap: 8, width: '100%'}}>
-            <input
-              type="date"
-              value={dateFrom || ''}
-              onChange={(e) => setDateFrom(e.target.value || null)}
-              style={{...baseStyles.input(dark), flex: 1}}
-            />
-            <input
-              type="date"
-              value={dateTo || ''}
-              onChange={(e) => setDateTo(e.target.value || null)}
-              style={{...baseStyles.input(dark), flex: 1}}
-            />
-          </div>
+          <input
+            type="date"
+            value={dateFrom || ''}
+            onChange={(e) => setDateFrom(e.target.value || null)}
+            style={baseStyles.input(dark)}
+          />
+          <input
+            type="date"
+            value={dateTo || ''}
+            onChange={(e) => setDateTo(e.target.value || null)}
+            style={baseStyles.input(dark)}
+          />
           <button
-            style={{...baseStyles.primaryBtn, width: '100%'}}
+            style={baseStyles.primaryBtn}
             onClick={() => {
               setSearchQuery('');
               setDateFrom(null);
               setDateTo(null);
             }}
           >
-            Reset Filters
+            Reset
           </button>
 
-          <div style={{ display: 'flex', gap: 6, width: '100%', justifyContent: 'center' }}>
-            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '6px 8px'}} onClick={exportExpensesCSV}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button style={baseStyles.primaryBtn} onClick={exportExpensesCSV}>
               CSV
             </button>
-            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '6px 8px'}} onClick={exportExpensesXLSX}>
-              Excel
+            <button style={baseStyles.primaryBtn} onClick={exportExpensesXLSX}>
+              XLSX
             </button>
-            <button style={{...baseStyles.primaryBtn, fontSize: 11, padding: '6px 8px'}} onClick={exportExpensesPDF}>
+            <button style={baseStyles.primaryBtn} onClick={exportExpensesPDF}>
               PDF
             </button>
           </div>
         </div>
 
         {filteredExpenses.length === 0 ? (
-          <p style={{ textAlign: 'center', marginTop: 10, fontSize: 14 }}>No expenses found.</p>
+          <p style={{ textAlign: 'center', marginTop: 10 }}>No expenses found.</p>
         ) : (
-          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div style={{ overflowX: 'auto' }}>
             <table style={baseStyles.table(dark)}>
               <thead>
                 <tr>
                   <th style={baseStyles.th(dark)}>Item</th>
+                  <th style={baseStyles.th(dark)}>Quantity</th>
+                  <th style={baseStyles.th(dark)}>Price/Unit</th>
                   <th style={baseStyles.th(dark)}>Total</th>
-                  <th style={{...baseStyles.th(dark), ...baseStyles.mobileHidden}}>Contributors</th>
-                  <th style={{...baseStyles.th(dark), ...baseStyles.mobileHidden}}>Consumers</th>
+                  <th style={baseStyles.th(dark)}>Contributed By</th>
+                  <th style={baseStyles.th(dark)}>Consumed By</th>
                   <th style={baseStyles.th(dark)}>Date</th>
+                  <th style={baseStyles.th(dark)}>Document</th>
                   <th style={baseStyles.th(dark)}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredExpenses.map((exp) => (
                   <tr key={exp.id}>
+                    <td style={baseStyles.td(dark)}>{exp.item_name}</td>
+                    <td style={baseStyles.td(dark)}>{exp.quantity}</td>
+                    <td style={baseStyles.td(dark)}>{exp.price_per_unit}</td>
+                    <td style={baseStyles.td(dark)}>{exp.total_price}</td>
                     <td style={baseStyles.td(dark)}>
-                      <div style={{fontWeight: 'bold'}}>{exp.item_name}</div>
-                      <div style={{fontSize: 10, color: dark ? '#9fb4d9' : '#64748b'}}>
-                        Qty: {exp.quantity} × {exp.price_per_unit}
-                      </div>
-                    </td>
-                    <td style={baseStyles.td(dark)}>
-                      <strong>PKR {exp.total_price}</strong>
-                    </td>
-                    <td style={{...baseStyles.td(dark), ...baseStyles.mobileHidden}}>
                       {Array.isArray(exp.contributed_by) 
-                        ? exp.contributed_by.map((c: any) => (
-                            <div key={c.name} style={{fontSize: 10}}>
-                              {c.name}: {c.amount}
-                            </div>
-                          ))
+                        ? exp.contributed_by.map((c: any) => `${c.name}: ${c.amount}`).join(', ')
                         : 'Invalid data'
                       }
                     </td>
-                    <td style={{...baseStyles.td(dark), ...baseStyles.mobileHidden}}>
+                    <td style={baseStyles.td(dark)}>
                       {Array.isArray(exp.consumed_by) 
                         ? exp.consumed_by.join(', ')
                         : 'Invalid data'
                       }
                     </td>
+                    <td style={baseStyles.td(dark)}>{exp.date}</td>
                     <td style={baseStyles.td(dark)}>
-                      {new Date(exp.date).toLocaleDateString()}
+                      {exp.document_url ? (
+                        <a href={exp.document_url} target="_blank" rel="noopener noreferrer">
+                          View
+                        </a>
+                      ) : ''}
                     </td>
                     <td style={baseStyles.td(dark)}>
-                      <div style={{ display: 'flex', gap: 4, justifyContent: 'center', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
                         {exp.date === new Date().toISOString().split('T')[0] && (
                           <>
                             <button
                               style={{
                                 ...baseStyles.smallDeleteBtn(dark),
                                 background: dark ? '#08304a' : '#fff',
-                                fontSize: 10,
-                                padding: '2px 4px'
                               }}
                               onClick={() => handleEditExpense(exp)}
                             >
-                              ✏️ Edit
+                              ✏️
                             </button>
                             <button
-                              style={{...baseStyles.deleteBtn, fontSize: 10, padding: '2px 4px'}}
+                              style={baseStyles.deleteBtn}
                               onClick={() => handleDeleteExpense(exp.id)}
                             >
-                              🗑️ Delete
+                              🗑️
                             </button>
                           </>
                         )}
@@ -1405,7 +1260,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
                         {p.phone ? p.phone + ' • ' : ''} {p.joining_date}
                         <div
                           style={{
-                            fontSize: 11,
+                            fontSize: 12,
                             color: dark ? '#9fb4d9' : '#64748b',
                           }}
                         >
@@ -1415,15 +1270,16 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontSize: 20 }}>🧑</span>
                       <button
-                        style={{...baseStyles.primaryBtn, fontSize: 11, padding: '4px 8px'}}
+                        style={baseStyles.primaryBtn}
                         onClick={() => handleEditPerson(p)}
                       >
                         Edit
                       </button>
                       <button
-                        style={{...baseStyles.smallDeleteBtn(dark), fontSize: 11, padding: '4px 8px'}}
+                        style={baseStyles.smallDeleteBtn(dark)}
                         onClick={() => handleDeletePerson(p.id)}
                       >
                         🗑️
@@ -1530,27 +1386,25 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
               style={baseStyles.input(dark)}
               required
             />
-            <div style={{display: 'flex', gap: 8}}>
-              <input
-                type="number"
-                placeholder="Quantity"
-                value={expense.quantity}
-                onChange={(e) => setExpense({ ...expense, quantity: Number(e.target.value) })}
-                style={{...baseStyles.input(dark), flex: 1}}
-                min={1}
-                required
-              />
-              <input
-                type="number"
-                placeholder="Price per Unit"
-                value={expense.price_per_unit as any}
-                onChange={(e) => setExpense({ ...expense, price_per_unit: e.target.value })}
-                style={{...baseStyles.input(dark), flex: 1}}
-                step="0.01"
-                min={0}
-                required
-              />
-            </div>
+            <input
+              type="number"
+              placeholder="Quantity"
+              value={expense.quantity}
+              onChange={(e) => setExpense({ ...expense, quantity: Number(e.target.value) })}
+              style={baseStyles.input(dark)}
+              min={1}
+              required
+            />
+            <input
+              type="number"
+              placeholder="Price per Unit"
+              value={expense.price_per_unit as any}
+              onChange={(e) => setExpense({ ...expense, price_per_unit: e.target.value })}
+              style={baseStyles.input(dark)}
+              step="0.01"
+              min={0}
+              required
+            />
             <input
               type="text"
               placeholder="Total Price (auto)"
@@ -1569,7 +1423,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
               ) : (
                 peopleList.map((p) => (
                   <div key={p.id} style={baseStyles.checklistItem}>
-                    <label style={{minWidth: 80}}>{p.name}</label>
+                    <label>{p.name}</label>
                     <input
                       type="number"
                       placeholder="Amount"
@@ -1580,7 +1434,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
                         ...expense,
                         contributedAmounts: { ...expense.contributedAmounts, [p.name]: Number(e.target.value) || 0 },
                       })}
-                      style={{ ...baseStyles.input(dark), width: 80 }}
+                      style={{ ...baseStyles.input(dark), width: '100px' }}
                     />
                     <input
                       type="checkbox"
@@ -1592,7 +1446,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
                         setExpense({ ...expense, consumed_by: updatedConsumers });
                       }}
                     />
-                    <label style={{fontSize: 12}}>Consumed</label>
+                    <label>Consumed</label>
                   </div>
                 ))
               )}
@@ -1726,56 +1580,61 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
       {showAnalytics && (
         <DashboardModal title="Analytics" onClose={() => setShowAnalytics(false)} dark={dark}>
           <div style={baseStyles.analyticsControls}>
-            <label style={{ fontWeight: 600, fontSize: 14 }}>Filter:</label>
+            <label style={{ fontWeight: 600 }}>Filter:</label>
             <select
               value={filter}
               onChange={(e) => loadAnalytics(e.target.value as 'daily' | 'monthly', analyticsMode)}
-              style={{ ...baseStyles.input(dark), width: '100%' }}
+              style={{ ...baseStyles.input(dark), width: 160 }}
             >
               <option value="daily">Daily</option>
               <option value="monthly">Monthly</option>
             </select>
 
-            <label style={{ fontWeight: 600, fontSize: 14 }}>Report Type:</label>
+            <label style={{ fontWeight: 600 }}>Report Type:</label>
             <select
               value={analyticsMode}
               onChange={(e) => loadAnalytics(filter, e.target.value as 'item' | 'person')}
-              style={{ ...baseStyles.input(dark), width: '100%' }}
+              style={{ ...baseStyles.input(dark), width: 180 }}
             >
-              <option value="item">Item Expenses</option>
-              <option value="person">Person Summary</option>
+              <option value="item">Item Expense Details</option>
+              <option value="person">Person Expense Summary</option>
             </select>
 
-            <div style={{ display: 'flex', gap: 6, width: '100%', justifyContent: 'center' }}>
-              <button style={{...baseStyles.primaryBtn, fontSize: 11}} onClick={exportAnalyticsCSV}>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+              <button style={baseStyles.primaryBtn} onClick={exportAnalyticsCSV}>
                 CSV
               </button>
-              <button style={{...baseStyles.primaryBtn, fontSize: 11}} onClick={exportAnalyticsXLSX}>
-                Excel
+              <button style={baseStyles.primaryBtn} onClick={exportAnalyticsXLSX}>
+                XLSX
               </button>
-              <button style={{...baseStyles.primaryBtn, fontSize: 11}} onClick={exportAnalyticsPDF}>
+              <button style={baseStyles.primaryBtn} onClick={exportAnalyticsPDF}>
                 PDF
               </button>
             </div>
           </div>
 
-          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <div style={{ overflowX: 'auto' }}>
             <table style={baseStyles.table(dark)}>
               <thead>
                 <tr>
                   {analyticsMode === 'person' ? (
                     <>
                       <th style={baseStyles.th(dark)}>Name</th>
-                      <th style={baseStyles.th(dark)}>Contributed</th>
-                      <th style={baseStyles.th(dark)}>Share</th>
-                      <th style={baseStyles.th(dark)}>Balance</th>
+                      <th style={baseStyles.th(dark)}>Total Contributed (PKR)</th>
+                      <th style={baseStyles.th(dark)}>Total Expense Share (PKR)</th>
+                      <th style={baseStyles.th(dark)}>Net Balance (PKR)</th>
+                      <th style={baseStyles.th(dark)}>Expense Count</th>
                     </>
                   ) : (
                     <>
-                      <th style={baseStyles.th(dark)}>Item</th>
+                      <th style={baseStyles.th(dark)}>Item Name</th>
                       <th style={baseStyles.th(dark)}>Date</th>
-                      <th style={baseStyles.th(dark)}>Total</th>
-                      <th style={{...baseStyles.th(dark), ...baseStyles.mobileHidden}}>Share/Person</th>
+                      <th style={baseStyles.th(dark)}>Quantity</th>
+                      <th style={baseStyles.th(dark)}>Price/Unit</th>
+                      <th style={baseStyles.th(dark)}>Total Price</th>
+                      <th style={baseStyles.th(dark)}>Contributors</th>
+                      <th style={baseStyles.th(dark)}>Consumers</th>
+                      <th style={baseStyles.th(dark)}>Per Consumer Share</th>
                     </>
                   )}
                 </tr>
@@ -1783,7 +1642,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
               <tbody>
                 {analytics.length === 0 ? (
                   <tr>
-                    <td style={baseStyles.td(dark)} colSpan={analyticsMode === 'person' ? 4 : 4}>
+                    <td style={baseStyles.td(dark)} colSpan={analyticsMode === 'person' ? 5 : 8}>
                       No data
                     </td>
                   </tr>
@@ -1793,23 +1652,28 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
                       {analyticsMode === 'person' ? (
                         <>
                           <td style={baseStyles.td(dark)}>{row.name}</td>
-                          <td style={baseStyles.td(dark)}>{(row.total_contributed || 0).toFixed(0)}</td>
-                          <td style={baseStyles.td(dark)}>{(row.total_expense_share || 0).toFixed(0)}</td>
+                          <td style={baseStyles.td(dark)}>{(row.total_contributed || 0).toFixed(2)}</td>
+                          <td style={baseStyles.td(dark)}>{(row.total_expense_share || 0).toFixed(2)}</td>
                           <td style={baseStyles.td(dark)}>
                             <span style={{ 
                               color: (row.net_balance || 0) >= 0 ? (dark ? '#4ade80' : '#16a34a') : (dark ? '#f87171' : '#dc2626'),
                               fontWeight: 'bold'
                             }}>
-                              {(row.net_balance || 0).toFixed(0)}
+                              {(row.net_balance || 0).toFixed(2)}
                             </span>
                           </td>
+                          <td style={baseStyles.td(dark)}>{row.expense_count || 0}</td>
                         </>
                       ) : (
                         <>
                           <td style={baseStyles.td(dark)}>{row.item_name}</td>
-                          <td style={baseStyles.td(dark)}>{new Date(row.date).toLocaleDateString()}</td>
+                          <td style={baseStyles.td(dark)}>{row.date}</td>
+                          <td style={baseStyles.td(dark)}>{row.quantity}</td>
+                          <td style={baseStyles.td(dark)}>{row.price_per_unit}</td>
                           <td style={baseStyles.td(dark)}>{row.total_price}</td>
-                          <td style={{...baseStyles.td(dark), ...baseStyles.mobileHidden}}>{row.per_consumer_share}</td>
+                          <td style={baseStyles.td(dark)}>{row.contributors}</td>
+                          <td style={baseStyles.td(dark)}>{row.consumers}</td>
+                          <td style={baseStyles.td(dark)}>{row.per_consumer_share}</td>
                         </>
                       )}
                     </tr>
@@ -1819,23 +1683,24 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
             </table>
           </div>
 
-          <div style={{ width: '100%', height: 300, marginTop: 12 }}>
+          <div style={{ width: '100%', height: 360, marginTop: 16 }}>
             <ResponsiveContainer>
               <BarChart
                 data={chartData}
-                margin={{ top: 10, right: 10, left: 0, bottom: 30 }}
+                margin={{ top: 10, right: 10, left: 0, bottom: 50 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" height={60} fontSize={10} />
-                <YAxis fontSize={10} />
+                <XAxis dataKey="name" interval={0} angle={-20} textAnchor="end" height={80} />
+                <YAxis />
                 <Tooltip />
                 {analyticsMode === 'person' ? (
                   <>
-                    <Bar dataKey="contributed" fill="#2563eb" name="Contributed" />
-                    <Bar dataKey="expense_share" fill="#dc2626" name="Share" />
+                    <Bar dataKey="contributed" fill="#2563eb" name="Total Contributed" />
+                    <Bar dataKey="expense_share" fill="#dc2626" name="Total Expense Share" />
+                    <Bar dataKey="net_balance" fill="#16a34a" name="Net Balance" />
                   </>
                 ) : (
-                  <Bar dataKey="value" fill="#7c3aed" name="Total" />
+                  <Bar dataKey="value" fill="#7c3aed" name="Total Price" />
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -1846,35 +1711,35 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
       {/* Footer */}
       <div style={baseStyles.footer}>
         <div style={baseStyles.footerBox(dark)}>
-          <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 14 }}>
-            Expense Tracker
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>
+            Mini Expense Tracker — Contact & Credits
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left' as const }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontWeight: 600, fontSize: 12 }}>Himayat Ali (Developer)</div>
-              <div style={{fontSize: 11}}>📞 0347-2424022</div>
+              <div style={{ fontWeight: 600 }}>Himayat Ali (Software Developer)</div>
+              <div>📞 0347-2424022</div>
             </div>
 
             <div>
-              <div style={{ fontWeight: 600, fontSize: 12 }}>Ahmad Shahi (Engineer)</div>
-              <div style={{fontSize: 11}}>📞 0310-5855299</div>
+              <div style={{ fontWeight: 600 }}>Ahmad Shahi (Software Engineer)</div>
+              <div>📞 0310-5855299</div>
             </div>
 
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 12 }}>Contact:</div>
-              <div style={{fontSize: 11}}>himayatali@example.com</div>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontWeight: 600 }}>For website work & inquiries:</div>
+              <div>himayatali@example.com</div>
             </div>
           </div>
 
           <div
             style={{
               marginTop: 12,
-              fontSize: 10,
+              fontSize: 12,
               color: dark ? '#9fb4d9' : '#475569',
             }}
           >
-            © {new Date().getFullYear()} Expense Tracker
+            © {new Date().getFullYear()} Mini Expense Tracker — made by Himayat Ali and Ahmad Shahi. All rights reserved.
           </div>
         </div>
       </div>
@@ -1899,18 +1764,17 @@ function DashboardModal({
   return (
     <div style={baseStyles.modalOverlay}>
       <div style={baseStyles.modal(dark)}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <h2 style={{ marginTop: 0, fontSize: 18 }}>{title}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ marginTop: 0 }}>{title}</h2>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={onClose}
               style={{
                 background: '#e2e8f0',
                 border: 'none',
-                padding: '6px 10px',
+                padding: '8px 10px',
                 borderRadius: 6,
                 cursor: 'pointer',
-                fontSize: 12,
               }}
             >
               Close
