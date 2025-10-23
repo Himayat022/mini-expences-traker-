@@ -187,7 +187,7 @@ const baseStyles = {
   footerBox: (dark: boolean) => ({
     background: dark ? '#04121a' : '#fff',
     borderRadius: 12,
-    padding: 16,
+    padding: 16, 
     width: '100%',
     boxShadow: dark ? '0 6px 18px rgba(0,0,0,0.6)' : '0 6px 18px rgba(0,0,0,0.06)',
     color: dark ? '#e6eefc' : undefined,
@@ -1728,7 +1728,7 @@ async function loadAnalytics(filterType: 'daily' | 'monthly' = filter, mode: 'it
 
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 600 }}>For website work & inquiries:</div>
-              <div>himayatali@example.com</div>
+              <div>shahipando05@gmail.com</div>
             </div>
           </div>
 

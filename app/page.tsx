@@ -143,7 +143,7 @@ export default function Home() {
               border: '1px solid rgba(245, 158, 11, 0.3)',
             }}
           >
-            ⚠️ Signup is not allowed. Please use the provided credentials.
+            ⚠️ Signup is not allowed. Please ! contact admin if u are new user .
           </div>
         )}
 
